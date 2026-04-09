@@ -1,7 +1,10 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from airflow.providers.docker.operators.docker import DockerOperator
 
+import sys
+sys.path.append('/opt/airflow/tasks')
+
+from crawl_and_load_report_excel_files_to_bronze import craw_and_load_report_economic_excel_files_to_bronze
 from datetime import datetime
 
 def hallo(): 
@@ -13,6 +16,6 @@ with DAG (
     
 )as dag:
     task1 = PythonOperator(
-        task_id = 'say_hello',
-        python_callable=hallo
+        task_id = 'template',
+        python_callable=craw_and_load_report_economic_excel_files_to_bronze
     )
