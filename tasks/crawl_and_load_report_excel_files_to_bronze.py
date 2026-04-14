@@ -4,7 +4,7 @@ import unicodedata
 import re
 from minio import Minio
 
-from reused_func import clean_text
+from reuse_function import clean_text
 
 
 def get_time_of_next_report(url: str):
@@ -34,28 +34,19 @@ def create_bucket_if_not_exists(bucket_name):
         print(f"Error creating bucket: {e}")
         
 
-def load_file_to_Bronze(bucket_name, object_name, excel_file, length):
+def load_file_to_Bronze(bucket_name, object_name, local_file_path ):
     try:
-        if length is None:
-            # fallback (ít chuẩn hơn)
-            data = excel_file.content
-            client.put_object(
-                bucket_name,
-                object_name,
-                data=io.BytesIO(data),
-                length=len(data)
-            )
-        else:
-            client.put_object(
-                bucket_name,
-                object_name,
-                data=excel_file.raw,
-                length=int(length)
-            )
+        print(object_name, '\n', bucket_name, '\n', local_file_path)
+        client.fput_object(
+            bucket_name,
+            object_name,
+            local_file_path
+        )
+        print('SUCCESSFULLY LOAD DATA TO BRONZE LAYER !!!!!!!!!!!111')
     except Exception as e:
         print(f'HAVE AN ERROR WHEN LOAD FILE TO {bucket_name} !!!!!!!!!!')
         print(e)
-    next
+    
 
 def craw_and_load_report_economic_excel_files_to_bronze():
     # url link dẫn đến trang báo cáo kinh tế Việt Nam
@@ -132,49 +123,59 @@ def craw_and_load_report_economic_excel_files_to_bronze():
         year = title[len(title) -4 ::]
 
         # trích xuất tháng từ title
+        
         month = None
         if pre_month != None: 
             if pre_month != 1: 
                 month = pre_month - 1
             else: month = 12
         else:
-            temp_title = title[::len(title) - 3]
-            if any(e in temp_title for e in ['1', 'một']):
+            tmp_title = title[0:len(title) - 8]
+            print('tmp title: ', tmp_title)
+            if any(e in tmp_title for e in ['1', 'một']):
                 month = 1
-            if any(e in temp_title for e in ['2', 'hai']):
+            if any(e in tmp_title for e in ['2', 'hai']):
                 month = 2
-            if any(e in temp_title for e in ['3', 'ba', 'quý i']):
+            if any(e in tmp_title for e in ['3', 'ba', 'quý i']):
                 month = 3
-            if any(e in temp_title for e in ['4', 'bốn', 'tư']):
+            if any(e in tmp_title for e in ['4', 'bốn', 'tư']):
                 month = 4
-            if any(e in temp_title for e in ['5', 'năm']):
+            if any(e in tmp_title for e in ['5', 'năm']):
                 month = 5
-            if any(e in temp_title for e in ['6', 'sáu', 'quý ii']):
+            if any(e in tmp_title for e in ['6', 'sáu', 'quý ii']):
                 month = 6
-            if any(e in temp_title for e in ['7', 'bảy']): 
+            if any(e in tmp_title for e in ['7', 'bảy']): 
                 month = 7
-            if any(e in temp_title for e in ['8', 'tám']):
+            if any(e in tmp_title for e in ['8', 'tám']):
                 month = 8
-            if any(e in temp_title for e in ['9', 'chín', 'quý iii']):
+            if any(e in tmp_title for e in ['9', 'chín', 'quý iii']):
                 month = 9
-            if any(e in temp_title for e in ['10', 'mười']):
+            if any(e in tmp_title for e in ['10', 'mười']):
                 month = 10
-            if any(e in temp_title for e in ['11', 'mười một']):
+            if any(e in tmp_title for e in ['11', 'mười một']):
                 month = 11
-            if any(e in temp_title for e in ['12', 'mười hai', 'quý iv']):
+            if any(e in tmp_title for e in ['12', 'mười hai', 'quý iv']):
                 month = 12
         
         pre_month = month
-
+        print (year, month)
         create_bucket_if_not_exists('bronze')
 
-        object_name = f"economic_report_excel_files/{year}/{month}"
+        object_name = f"economic_report_excel_files/{year}/{month}/"
         excel_file = requests.get(excel_url, verify= False, stream= True)
-        length = excel_file.headers.get("content-length")
+
+        file_name = excel_url.split('/')[-1]
 
         # Code push data to MinIO Bronze
+        os.makedirs(f'/opt/airflow/tmp_data', exist_ok= True)
+        with open(f'/opt/airflow/tmp_data/{file_name}', 'wb') as f: 
+            f.write(excel_file.content)
+        print(f'Tạo file {file_name} thành công !!!!!!!!!!!!!!')
 
-        load_file_to_Bronze(bucket_name='bronze', object_name= object_name, excel_file= excel_file, length= length)
+        load_file_to_Bronze(bucket_name='bronze', object_name= f"{object_name}{file_name}", local_file_path= f'/opt/airflow/tmp_data/{file_name}')
+        os.remove(f'/opt/airflow/tmp_data/{file_name}')
+        print('Xóa file lưu tạm thành công')
+
         
         
 

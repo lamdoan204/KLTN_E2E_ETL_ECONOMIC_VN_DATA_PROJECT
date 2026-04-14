@@ -1,0 +1,161 @@
+{"timestamp":"2026-04-11T14:34:18.623427Z","level":"info","event":"DAG bundles loaded: dags-folder","logger":"airflow.dag_processing.bundles.manager.DagBundlesManager","filename":"manager.py","lineno":209}
+{"timestamp":"2026-04-11T14:34:18.626765Z","level":"info","event":"Filling up the DagBag from /opt/airflow/dags/Ingest_to_Silver_Layer_Ecommerce_Data.py","logger":"airflow.dag_processing.dagbag.BundleDagBag","filename":"dagbag.py","lineno":469}
+{"timestamp":"2026-04-11T14:34:19.012727Z","level":"warning","event":"The `airflow.operators.python.PythonOperator` attribute is deprecated. Please use `'airflow.providers.standard.operators.python.PythonOperator'`.","category":"UserWarning","filename":"/opt/airflow/dags/Ingest_to_Silver_Layer_Ecommerce_Data.py","lineno":2,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:19.063762Z","level":"info","event":"Lấy tên bài báo + link dẫn tới bài báo................................","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:19.064697Z","level":"info","event":"Crawling Page: 1 ...........................","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:19.260475Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:20.169855Z","level":"info","event":"Crawling Page: 2 ...........................","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:20.256103Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:21.185765Z","level":"info","event":"vào bài báo tải file excel về ===========================================","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:21.186920Z","level":"info","event":"báo cáo tình hình kinh tế - xã hội quý i năm 2026","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:21.294830Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:22.208676Z","level":"info","event":"tmp title:  báo cáo tình hình kinh tế - xã hội quý i","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:22.209485Z","level":"info","event":"2026 3","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:22.220285Z","level":"info","event":"Bucket 'bronze' created successfully","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:22.305383Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:22.627136Z","level":"info","event":"Tạo file 02.-Bieu-T3.2026-1.xlsx thành công !!!!!!!!!!!!!!","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:22.627931Z","level":"info","event":"economic_report_excel_files/2026/3/02.-Bieu-T3.2026-1.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:22.628415Z","level":"info","event":" bronze","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:22.628804Z","level":"info","event":" /opt/airflow/tmp_data/02.-Bieu-T3.2026-1.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:22.644607Z","level":"info","event":"SUCCESSFULLY LOAD DATA TO BRONZE LAYER !!!!!!!!!!!111","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:22.645215Z","level":"info","event":"báo cáo tình hình kinh tế - xã hội tháng hai năm 2026","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:22.733346Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:23.627619Z","level":"info","event":"2026 2","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:23.643227Z","level":"info","event":"Bucket 'bronze' already exists","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:23.723694Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:24.544309Z","level":"info","event":"Tạo file 02.-Bieu-T2.xlsx thành công !!!!!!!!!!!!!!","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:24.545218Z","level":"info","event":"economic_report_excel_files/2026/2/02.-Bieu-T2.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:24.545862Z","level":"info","event":" bronze","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:24.546795Z","level":"info","event":" /opt/airflow/tmp_data/02.-Bieu-T2.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:24.559119Z","level":"info","event":"SUCCESSFULLY LOAD DATA TO BRONZE LAYER !!!!!!!!!!!111","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:24.559924Z","level":"info","event":"báo cáo tình hình kinh tế - xã hội tháng một năm 2026","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:24.739953Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:25.673100Z","level":"info","event":"2026 1","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:25.674690Z","level":"info","event":"Bucket 'bronze' already exists","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:25.775512Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:26.095097Z","level":"info","event":"Tạo file 02.-Bieu-T1.2026.xlsx thành công !!!!!!!!!!!!!!","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:26.095733Z","level":"info","event":"economic_report_excel_files/2026/1/02.-Bieu-T1.2026.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:26.096264Z","level":"info","event":" bronze","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:26.096755Z","level":"info","event":" /opt/airflow/tmp_data/02.-Bieu-T1.2026.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:26.109307Z","level":"info","event":"SUCCESSFULLY LOAD DATA TO BRONZE LAYER !!!!!!!!!!!111","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:26.110342Z","level":"info","event":"báo cáo tình hình kinh tế - xã hội quý iv và năm 2025","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:26.222764Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:27.180487Z","level":"info","event":"2025 12","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:27.182305Z","level":"info","event":"Bucket 'bronze' already exists","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:27.321876Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:27.693962Z","level":"info","event":"Tạo file 02.-Bieu-12.2025-4.xlsx thành công !!!!!!!!!!!!!!","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:27.694576Z","level":"info","event":"economic_report_excel_files/2025/12/02.-Bieu-12.2025-4.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:27.695010Z","level":"info","event":" bronze","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:27.695476Z","level":"info","event":" /opt/airflow/tmp_data/02.-Bieu-12.2025-4.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:27.710692Z","level":"info","event":"SUCCESSFULLY LOAD DATA TO BRONZE LAYER !!!!!!!!!!!111","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:27.711421Z","level":"info","event":"báo cáo tình hình kinh tế - xã hội tháng mười một và 11 tháng năm 2025","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:27.826548Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:28.762624Z","level":"info","event":"2025 11","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:28.777921Z","level":"info","event":"Bucket 'bronze' already exists","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:28.904982Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:29.293183Z","level":"info","event":"Tạo file 2.-So-lieu-T11.2025.xlsx thành công !!!!!!!!!!!!!!","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:29.293910Z","level":"info","event":"economic_report_excel_files/2025/11/2.-So-lieu-T11.2025.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:29.294605Z","level":"info","event":" bronze","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:29.295135Z","level":"info","event":" /opt/airflow/tmp_data/2.-So-lieu-T11.2025.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:29.306535Z","level":"info","event":"SUCCESSFULLY LOAD DATA TO BRONZE LAYER !!!!!!!!!!!111","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:29.307237Z","level":"info","event":"báo cáo tình hình kinh tế - xã hội tháng mười và 10 tháng năm 2025","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:29.396346Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:30.237925Z","level":"info","event":"2025 10","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:30.239690Z","level":"info","event":"Bucket 'bronze' already exists","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:30.347530Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:30.721971Z","level":"info","event":"Tạo file 02.-So-lieu-T10.2025.xlsx thành công !!!!!!!!!!!!!!","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:30.722854Z","level":"info","event":"economic_report_excel_files/2025/10/02.-So-lieu-T10.2025.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:30.723522Z","level":"info","event":" bronze","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:30.724342Z","level":"info","event":" /opt/airflow/tmp_data/02.-So-lieu-T10.2025.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:30.733917Z","level":"info","event":"SUCCESSFULLY LOAD DATA TO BRONZE LAYER !!!!!!!!!!!111","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:30.734520Z","level":"info","event":"báo cáo tình hình kinh tế - xã hội quý iii và 9 tháng năm 2025","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:30.834322Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:31.750264Z","level":"info","event":"2025 9","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:31.751884Z","level":"info","event":"Bucket 'bronze' already exists","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:31.890525Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:32.342378Z","level":"info","event":"Tạo file 02.-Bieu-T9.2025-final.xlsx thành công !!!!!!!!!!!!!!","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:32.343227Z","level":"info","event":"economic_report_excel_files/2025/9/02.-Bieu-T9.2025-final.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:32.343909Z","level":"info","event":" bronze","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:32.344428Z","level":"info","event":" /opt/airflow/tmp_data/02.-Bieu-T9.2025-final.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:32.363132Z","level":"info","event":"SUCCESSFULLY LOAD DATA TO BRONZE LAYER !!!!!!!!!!!111","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:32.364090Z","level":"info","event":"báo cáo tình hình kinh tế - xã hội tháng tám và 8 tháng năm 2025","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:32.494536Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:33.419408Z","level":"info","event":"2025 8","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:33.421202Z","level":"info","event":"Bucket 'bronze' already exists","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:33.522911Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:33.910729Z","level":"info","event":"Tạo file 02-So-lieu-T8.2025.xlsx thành công !!!!!!!!!!!!!!","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:33.912816Z","level":"info","event":"economic_report_excel_files/2025/8/02-So-lieu-T8.2025.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:33.917786Z","level":"info","event":" bronze","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:33.919989Z","level":"info","event":" /opt/airflow/tmp_data/02-So-lieu-T8.2025.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:33.962839Z","level":"info","event":"SUCCESSFULLY LOAD DATA TO BRONZE LAYER !!!!!!!!!!!111","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:33.965800Z","level":"info","event":"báo cáo tình hình kinh tế - xã hội tháng bảy và 7 tháng năm 2025","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:34.169715Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:35.033099Z","level":"info","event":"2025 7","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:35.034891Z","level":"info","event":"Bucket 'bronze' already exists","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:35.139303Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:35.777890Z","level":"info","event":"Tạo file 02-Bieu-T7.2025-final.xlsx thành công !!!!!!!!!!!!!!","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:35.778500Z","level":"info","event":"economic_report_excel_files/2025/7/02-Bieu-T7.2025-final.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:35.779071Z","level":"info","event":" bronze","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:35.779870Z","level":"info","event":" /opt/airflow/tmp_data/02-Bieu-T7.2025-final.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:35.795808Z","level":"info","event":"SUCCESSFULLY LOAD DATA TO BRONZE LAYER !!!!!!!!!!!111","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:35.796558Z","level":"info","event":"báo cáo tình hình kinh tế – xã hội quý ii và 6 tháng đầu năm 2025","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:35.913185Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:36.819891Z","level":"info","event":"2025 6","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:36.822237Z","level":"info","event":"Bucket 'bronze' already exists","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:36.922254Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:37.483644Z","level":"info","event":"Tạo file 2.-So-lieu-6-thang-2025.xlsx thành công !!!!!!!!!!!!!!","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:37.484469Z","level":"info","event":"economic_report_excel_files/2025/6/2.-So-lieu-6-thang-2025.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:37.485086Z","level":"info","event":" bronze","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:37.485637Z","level":"info","event":" /opt/airflow/tmp_data/2.-So-lieu-6-thang-2025.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:37.500661Z","level":"info","event":"SUCCESSFULLY LOAD DATA TO BRONZE LAYER !!!!!!!!!!!111","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:37.501356Z","level":"info","event":"báo cáo tình hình kinh tế - xã hội tháng năm và 5 tháng đầu năm 2025","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:37.607145Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:38.451129Z","level":"info","event":"2025 5","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:38.452843Z","level":"info","event":"Bucket 'bronze' already exists","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:38.605653Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:39.055685Z","level":"info","event":"Tạo file 2.-Bieu-thang-5.2025.xlsx thành công !!!!!!!!!!!!!!","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:39.056427Z","level":"info","event":"economic_report_excel_files/2025/5/2.-Bieu-thang-5.2025.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:39.056790Z","level":"info","event":" bronze","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:39.057372Z","level":"info","event":" /opt/airflow/tmp_data/2.-Bieu-thang-5.2025.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:39.071091Z","level":"info","event":"SUCCESSFULLY LOAD DATA TO BRONZE LAYER !!!!!!!!!!!111","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:39.071838Z","level":"info","event":"báo cáo tình hình kinh tế - xã hội tháng tư và 4 tháng đầu năm 2025","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:39.224601Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:40.126858Z","level":"info","event":"2025 4","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:40.128285Z","level":"info","event":"Bucket 'bronze' already exists","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:40.233588Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:40.553674Z","level":"info","event":"Tạo file 02-Bieu-T4.2025-final.xlsx thành công !!!!!!!!!!!!!!","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:40.555271Z","level":"info","event":"economic_report_excel_files/2025/4/02-Bieu-T4.2025-final.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:40.555870Z","level":"info","event":" bronze","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:40.556291Z","level":"info","event":" /opt/airflow/tmp_data/02-Bieu-T4.2025-final.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:40.567458Z","level":"info","event":"SUCCESSFULLY LOAD DATA TO BRONZE LAYER !!!!!!!!!!!111","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:40.568344Z","level":"info","event":"báo cáo tình hình kinh tế - xã hội quý i năm 2025","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:40.658961Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:41.494863Z","level":"info","event":"2025 3","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:41.496643Z","level":"info","event":"Bucket 'bronze' already exists","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:41.593907Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:41.858023Z","level":"info","event":"Tạo file 02-Bieu-T3.2025-final.xlsx thành công !!!!!!!!!!!!!!","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:41.858539Z","level":"info","event":"economic_report_excel_files/2025/3/02-Bieu-T3.2025-final.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:41.858885Z","level":"info","event":" bronze","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:41.859164Z","level":"info","event":" /opt/airflow/tmp_data/02-Bieu-T3.2025-final.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:41.872210Z","level":"info","event":"SUCCESSFULLY LOAD DATA TO BRONZE LAYER !!!!!!!!!!!111","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:41.872986Z","level":"info","event":"báo cáo tình hình kinh tế - xã hội tháng hai và 02 tháng đầu năm 2025","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:41.961336Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:42.848324Z","level":"info","event":"2025 2","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:42.849897Z","level":"info","event":"Bucket 'bronze' already exists","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:42.945328Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:43.218176Z","level":"info","event":"Tạo file Bieu-T2.2025-2.xlsx thành công !!!!!!!!!!!!!!","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:43.218998Z","level":"info","event":"economic_report_excel_files/2025/2/Bieu-T2.2025-2.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:43.219647Z","level":"info","event":" bronze","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:43.220325Z","level":"info","event":" /opt/airflow/tmp_data/Bieu-T2.2025-2.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:43.234620Z","level":"info","event":"SUCCESSFULLY LOAD DATA TO BRONZE LAYER !!!!!!!!!!!111","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:43.235523Z","level":"info","event":"báo cáo tình hình kinh tế - xã hội tháng một năm 2025","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:43.390447Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:44.270567Z","level":"info","event":"2025 1","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:44.292470Z","level":"info","event":"Bucket 'bronze' already exists","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:44.450848Z","level":"warning","event":"Unverified HTTPS request is being made to host 'www.nso.gov.vn'. Adding certificate verification is strongly advised. See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#tls-warnings","category":"InsecureRequestWarning","filename":"/home/airflow/.local/lib/python3.13/site-packages/urllib3/connectionpool.py","lineno":1097,"logger":"py.warnings"}
+{"timestamp":"2026-04-11T14:34:44.714850Z","level":"info","event":"Tạo file 02-Bieu-T01.2025-2.xlsx thành công !!!!!!!!!!!!!!","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:44.715616Z","level":"info","event":"economic_report_excel_files/2025/1/02-Bieu-T01.2025-2.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:44.716324Z","level":"info","event":" bronze","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:44.716854Z","level":"info","event":" /opt/airflow/tmp_data/02-Bieu-T01.2025-2.xlsx","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:44.732142Z","level":"info","event":"SUCCESSFULLY LOAD DATA TO BRONZE LAYER !!!!!!!!!!!111","logger":"task.stdout"}
+{"timestamp":"2026-04-11T14:34:44.734751Z","level":"info","event":"Done. Returned value was: None","logger":"airflow.task.operators.airflow.providers.standard.operators.python.PythonOperator","filename":"python.py","lineno":229}
