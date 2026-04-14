@@ -142,7 +142,7 @@ def extract_data_from_GDP(excel_file: pd.ExcelFile, year, month):
 
 
 # TRÍCH XUẤT DỮ LIỆU THƯƠNG MẠI QUỐC TẾ
-def extract_intenational_ecommerce_data_sheet(sheet : pd.DataFrame, type : str, month):
+def extract_intenational_ecommerce_data_sheet_02(sheet : pd.DataFrame, type : str, month):
     # xóa các row không cần thiết
     num_of_remove_row = 0
     for i in range(len(sheet)):
@@ -168,29 +168,47 @@ def extract_intenational_ecommerce_data_sheet(sheet : pd.DataFrame, type : str, 
         
     return sheet
 
+def extract_intenational_ecommerce_data_sheet_01(sheet : pd.DataFrame, type: str, month):
+    # xóa các row không cần thiết
+    num_of_remove_row = 0
+    for i in range(len(sheet)):
+        num_of_remove_row += 1
+        if isinstance(sheet.iloc[i, 0], str) and 'mathangchuyeu' in clean_text(sheet.iloc[i, 0]): break
 
+    if type == 'import':
+        sheet = sheet.iloc[num_of_remove_row:len(sheet) - 1, ::].reset_index(drop =True)
+        
+    else: sheet = sheet.iloc[num_of_remove_row::, ::].reset_index(drop =True)
+
+    name_colums = ['product_name', f'quantity_of_month_{month - 1}', f'value_of_month_{month -1}', f'quantity_of_month_{month}', f'value_of_month_{month}']
+    #xoa cac cot kh can thiet
+    sheet = sheet.iloc[::, [1, 2, 3, 5 ,6]]
+    sheet.columns = name_colums
+    if type == 'import': sheet.loc[ 29, 'product_name'] = 'Ô tô-nguyên chiếc' 
+    return sheet
 
 def extract_data_from_International_Ecommerce(excel_file: pd.ExcelFile, year, month):
     all_sheets = excel_file.sheet_names
     import_sheet = None
     export_sheet = None
-    if year > 2018 or year == 2018 and month >= 9 :
-        
-        for i in range(len(all_sheets)):
-            sheet_name = clean_text[all_sheets[i]]
-            if any(name in sheet_name for name in ['nk', 'nhapkhau']) and all(name not in sheet_name for name in ['quy', 'gia']):
-                import_sheet = pd.read_excel(excel_file, sheet_name= all_sheets[i], header= None)
-            if any(name in sheet_name for name in ['xuatkhau', 'xk']) and all(name not in sheet_name for name in ['quy', 'gia']);
-                export_sheet = pd.read_excel(excel_file, sheet_name= all_sheets[i], header= None)
+    # code xác định sheet báo cáo dữ liệu thương mại quốc tế
+    for i in range(len(all_sheets)):
+        sheet_name = clean_text[all_sheets[i]]
+        if any(name in sheet_name for name in ['nk', 'nhapkhau']) and all(name not in sheet_name for name in ['quy', 'gia']):
+            import_sheet = pd.read_excel(excel_file, sheet_name= all_sheets[i], header= None)
+        if any(name in sheet_name for name in ['xuatkhau', 'xk']) and all(name not in sheet_name for name in ['quy', 'gia']):
+            export_sheet = pd.read_excel(excel_file, sheet_name= all_sheets[i], header= None)
 
+    if year > 2018 or year == 2018 and month >= 9 :
         # gọi hàm trích xuất được thiết kế ở trên 
-        import_sheet = extract_intenational_ecommerce_data_sheet(import_sheet, 'import', month)
-        export_sheet = extract_intenational_ecommerce_data_sheet(export_sheet, 'export')
+        import_sheet = extract_intenational_ecommerce_data_sheet_02(import_sheet, 'import', month)
+        export_sheet = extract_intenational_ecommerce_data_sheet_02(export_sheet, 'export', month)
         # load lên silver với 1 schema nào đó
         
-
     else:
-        next
+        import_sheet = extract_intenational_ecommerce_data_sheet_01(import_sheet, 'import', month)
+        export_sheet = extract_intenational_ecommerce_data_sheet_01(import_sheet, 'export', month)
+        # từ sheet trích xuất dữ liệu và load lên silver theo 1 schema nào đó
 
 
 def extract_data_from_Invesment(excel_file: pd.ExcelFile, year, month):
