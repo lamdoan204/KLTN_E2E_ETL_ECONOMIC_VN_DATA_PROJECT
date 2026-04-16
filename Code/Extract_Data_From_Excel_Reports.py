@@ -2,7 +2,7 @@ import pandas as pd
 from minio_funcs import *
 from reuse_function import *
 
-
+# TRÍCH XUẤT DỮ LIỆU GPD VIỆT NAM THEO CÁC NGÀNH KINH TẾ
 def extract_data_from_GDP(excel_file: pd.ExcelFile, year, month):
     # Kiểm tra phải báo cáo của quý không
     if month % 3 == 0:
@@ -137,10 +137,6 @@ def extract_data_from_GDP(excel_file: pd.ExcelFile, year, month):
             # load lên silver với schema nào đó.
 
                 
-
-
-
-
 # TRÍCH XUẤT DỮ LIỆU THƯƠNG MẠI QUỐC TẾ
 def extract_intenational_ecommerce_data_sheet_02(sheet : pd.DataFrame, type : str, month):
     # xóa các row không cần thiết
@@ -208,19 +204,60 @@ def extract_data_from_International_Ecommerce(excel_file: pd.ExcelFile, year, mo
     else:
         import_sheet = extract_intenational_ecommerce_data_sheet_01(import_sheet, 'import', month)
         export_sheet = extract_intenational_ecommerce_data_sheet_01(import_sheet, 'export', month)
-        # từ sheet trích xuất dữ liệu và load lên silver theo 1 schema nào đó
+
+        # từ sheet trích xuất dữ liệu và load vào silver theo 1 schema nào đó
 
 
+
+# TRÍCH XUẤT DỮ LIỆU ĐẦU TƯ KINH TẾ -  VỐN ĐẦU TƯ TOÀN XÃ HỘI
 def extract_data_from_Invesment(excel_file: pd.ExcelFile, year, month):
-    next
+    # kiểm tra phải file báo cáo theo ở quý không
+    if month % 3 != 0 : return
+    quarter = month / 3
+    all_sheets = excel_file.sheet_names
+    # xác định sheet chứa dữ liệu VDTTXH
+    vdt_sheet = None
+    for i in range(len(all_sheets)):
+        current_sheet = pd.read_excel(excel_file, sheet_name= all_sheets[i], header= None)
+        for index in range(len(current_sheet[0])): # duyệt qua cột 0 của sheet để láy title
+            if isinstance(current_sheet.iloc[index, 0], str) and all(title in clean_text(current_sheet.iloc[index, 0]) for title in ['vondautu', 'thuchientoanxahoi','giahienhanh']):
+                vdt_sheet = current_sheet
+                break
+    if(vdt_sheet is None):
+        print(f"KHONG TIM THAY SHEET BAO CAO VDTTXH TRONG EXCEL FILE: year_{year}, month_{month} !!!!!!!!!")
+        return
+    # trích xuất dữ liệu
+    # lấy các cột càn thiết
+    vdt_sheet = vdt_sheet.iloc[::, 1:4]
+    column_names = ['investmen_type', f'vale_of_quarter_{quarter - 1}', f'value_of_quarter_{quarter}']
+    vdt_sheet.columns = column_names
+    # xóa các hàng không cần thiết
+    num_of_removed_col = -1
+    for i in range(len(vdt_sheet['investment_type'])):
+        num_of_removed_col += 1
+        if isinstance(vdt_sheet.iloc[i, 'investment_type'], str):
+            break
+    vdt_sheet = vdt_sheet.iloc[num_of_removed_col::, ::].reset_index(drop= True)
+    # load lên silver layer với 1 schema nào đó
 
+    # kiểm tra quý nào thiết thì trích từ file báo cáo excel của quý sau
+
+
+
+# Cào dữ liệu về và trích xuất từ 1 file excel - TRÍCH XUẤT DỮ LIỆU VỐN ĐẦU TƯ CHẢY VÀO NGÀNH KINH TẾ NÀO
 def extract_data_from_Investment_by_Sector(excel_file: pd.ExcelFile, year, month):
     next
 
+
+
+# TRÍCH XUẤT DỮ LIỆU LIÊN QUAN ĐẾN THỊ TRƯỜNG LAO ĐỘNG - TỶ LỆ THẤT NGHIỆP, ĐỘ TUỔI THẤT NGHIỆP - NÔNG THÔN THÀNH THỊ
 def extract_data_from_Labor_Market(excel_file: pd.ExcelFile, year, month):
     next
 
-def extract_data_for_Product_Effection_fact(excel_file: pd.ExcelFile, year, month):
+
+
+# TRÍCH XUẤT DỮ LIỆU NĂNG SUẤT SẢN PHẨM - CÂY TRỒNG, VẬT NUÔI, LÂM NGHIỆP.
+def extract_data_for_Product_Productivity_fact(excel_file: pd.ExcelFile, year, month):
     next
 
 
@@ -253,7 +290,7 @@ def main_func():
 
         extract_data_from_Labor_Market(excel_file, year, month)
 
-        extract_data_for_Product_Effection_fact(excel_file, year, month)
+        extract_data_for_Product_Productivity_fact(excel_file, year, month)
 
 
 main_func()
