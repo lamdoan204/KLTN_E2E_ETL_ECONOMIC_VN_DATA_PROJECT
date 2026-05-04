@@ -53,7 +53,7 @@ def extract_data_from_GDP(excel_file: pd.ExcelFile, year, month):
                     return None
 
             # trích xuất dữ liệu
-            # lấy đơn vị 
+                # lấy đơn vị 
             unit = None
             for i in range(len(gdp_hh_sheet)):
                 if isinstance(gdp_hh_sheet.iloc[i, 7], str): unit = gdp_hh_sheet.iloc[i, 7]
@@ -240,7 +240,7 @@ def extract_data_from_Invesment(excel_file: pd.ExcelFile, year, month):
     vdt_sheet = vdt_sheet.iloc[num_of_removed_col::, ::].reset_index(drop= True)
     # load lên silver layer với 1 schema nào đó
 
-    # kiểm tra quý nào thiết thì trích từ file báo cáo excel của quý sau
+    # kiểm tra quý nào thiếu thì trích từ file báo cáo excel của quý sau
 
 
 
@@ -251,14 +251,257 @@ def extract_data_from_Investment_by_Sector(excel_file: pd.ExcelFile, year, month
 
 
 # TRÍCH XUẤT DỮ LIỆU LIÊN QUAN ĐẾN THỊ TRƯỜNG LAO ĐỘNG - TỶ LỆ THẤT NGHIỆP, ĐỘ TUỔI THẤT NGHIỆP - NÔNG THÔN THÀNH THỊ
-def extract_data_from_Labor_Market(excel_file: pd.ExcelFile, year, month):
-    next
+# import time
+# def extract_data_from_Labor_Market(excel_file: pd.ExcelFile, year, month):
+#     all_sheets = excel_file.sheet_names
+    
+#     if month % 3 != 0 : return
+#     quarter = month / 3
+#     current_year = pd.Timestamp.now().year
+    
+#     # xác định sheet_index
+
+
+#     if year < current_year:
+#         if quarter != 4: return
+#         else:
+            
+#             # trích xuất dữ liệu
+#             next
+#         # trích xuất dữ liệu dựa vào quý 4 của hằng năm
+#     else:
+#         # lấy tháng hiện tại, nó thuộc quý nào trong năm, nếu lớn hơn 1 thì trích từ file quý đó -1
+        # next
+
+
+
 
 
 
 # TRÍCH XUẤT DỮ LIỆU NĂNG SUẤT SẢN PHẨM - CÂY TRỒNG, VẬT NUÔI, LÂM NGHIỆP.
+def search_start_and_end_index(title_sheet, sheet):
+    start_index = -1
+    end_index = len(sheet)
+    
+    lamnghiep_title =  'ketquasanxuatlamnghiep'
+    thuysan_title = 'sanluongthuysan'
+    channuoi_title= 'sanphamchannuoi'
+    chuyeu_title= 'sanluongmotsocaytrongchuyeu'
+    hangnam_title= 'sanluongmotsocaytronghangnam'
+    launam_title= 'sanluongmotsocaytronglaunam'
+
+    title_list = [lamnghiep_title, thuysan_title, channuoi_title, chuyeu_title, hangnam_title, launam_title]
+
+    col_0 = sheet.iloc[::, 0]
+    i = 0
+    for row in col_0:
+        if isinstance(row, str) and title_sheet in clean_text(row):
+            start_index = i
+            continue
+        if isinstance(row, str) and any(title in clean_text(row) for title in title_list) and start_index != -1:
+            end_index = i + 1
+            break
+        i += 1
+    
+    return start_index, end_index
+
+# sản phẩm công nghiệp
+def extract_primarily_industry_product_data(sheet : pd.read_excel, month):
+
+    column_names = ['product_name', 'unit', f'value_month_{month}']
+    sheet = sheet.iloc[::, [0, 1, 3]]
+    sheet.columns =column_names
+    
+    sheet = sheet.dropna().reset_index(drop= True)
+
+    for row_index in range(len(sheet)):
+        unit = sheet.loc[row_index, 'unit']
+        if '\n' in unit:
+            unit = unit.replace('\n', '')
+            sheet.loc[row_index, 'unit'] = unit
+        if unit == '\"':
+            pre_unit = sheet.loc[row_index -1 , 'unit']
+            sheet.loc[row_index, 'unit'] = pre_unit
+    return sheet
+
 def extract_data_for_Product_Productivity_fact(excel_file: pd.ExcelFile, year, month):
-    next
+    ##########################################################
+    congnghiep_title= 'motsosanphamnchuyeunganhcongnghiep'
+    lamnghiep_title =  'ketquasanxuatlamnghiep'
+    thuysan_title = 'sanluongthuysan'
+    channuoi_title= 'sanphamchannuoi'
+    chuyeu_title= 'sanluongmotsocaytrongchuyeu'
+    hangnam_title= 'sanluongmotsocaycongnghiephangnam'
+    launam_title= 'sanluongmotsocaycongnghieplaunam'
+    ##########################################################
+    all_sheets  = excel_file.sheet_names
+    san_pham_cong_nghiep_index = -1
+    congnghiep_title = 'motsosanphamchuyeucuanganhcongnghiep'
+    if month % 3 != 0:
+        # chỉ trích xuất dữ liệu theo tháng của sản phẩm ngành công nghiệp
+        for i in range(len(all_sheets)):
+            current_sheet = pd.read_excel(excel_file, sheet_name= all_sheets[i], header= None)
+            col_0 = current_sheet.iloc[::, 0]
+            for row in range(len(col_0)):
+                    if isinstance(col_0[row], str):
+                        cleaned_text =clean_text(col_0[row])
+                        if congnghiep_title == cleaned_text and san_pham_cong_nghiep_index == -1: san_pham_cong_nghiep_index = i
+            if san_pham_cong_nghiep_index != -1: break
+        df = extract_primarily_industry_product_data(pd.read_excel(excel_file, sheet_name= all_sheets[san_pham_cong_nghiep_index], header= None), month= month)
+        # load lên silver với schema nào đó
+    else: 
+        # trích xuất sản phẩm ngành công nghiệp
+        # trích xuất dữ liệu còn lại của quý
+        quarter = month / 3
+        
+        
+        lam_nghiep_sheet_index = -1
+        thuy_san_sheet_index = -1
+        chan_nuoi_sheet_index = -1
+
+        cay_hang_nam_sheet_index = -1
+        cay_lau_nam_sheet_index =-1
+        cay_trong_chu_yeu_sheet_index = -1
+        
+        # xác định sheet index
+        for i in range(len(all_sheets)):
+            current_sheet = pd.read_excel(excel_file, sheet_name= all_sheets[i], header= None)
+            col_0 = current_sheet.iloc[::, 0]
+            for row in range(len(col_0)):
+                    if isinstance(col_0[row], str):
+                        cleaned_text =clean_text(col_0[row])
+                        if 'sanluongthuysan' in  cleaned_text and thuy_san_sheet_index == -1: thuy_san_sheet_index = i
+                        if 'sanxuatlamnghiep' in cleaned_text and lam_nghiep_sheet_index == -1: lam_nghiep_sheet_index = i
+                        if 'channuoi' in cleaned_text and chan_nuoi_sheet_index == -1: chan_nuoi_sheet_index = i
+                        if congnghiep_title == cleaned_text and san_pham_cong_nghiep_index == -1: san_pham_cong_nghiep_index = i
+            print(san_pham_cong_nghiep_index)
+            if all(index != -1 for index in [lam_nghiep_sheet_index, thuy_san_sheet_index, chan_nuoi_sheet_index, san_pham_cong_nghiep_index]): 
+                    break 
+
+        if quarter == 4:
+            for i in range(len(all_sheets)):
+                current_sheet = pd.read_excel(excel_file, sheet_name= all_sheets[i], header= None)
+                col_0 = current_sheet.iloc[::, 0]
+
+                for row in range(len(col_0)):
+                    if isinstance(col_0[row], str):
+                        cleaned_text = clean_text(col_0[row])
+                        if any(title in cleaned_text for title in ['cayhangnam', 'motsocaycongnghiephangnam']) and cay_hang_nam_sheet_index == -1:
+                            cay_hang_nam_sheet_index = i
+                        if any(title in cleaned_text for title in ['caylaunam', 'caycongnghieplaunam']) and cay_lau_nam_sheet_index == -1:
+                            cay_lau_nam_sheet_index = i
+                        if 'caytrongchuyeu' in cleaned_text and cay_trong_chu_yeu_sheet_index == -1:
+                            cay_trong_chu_yeu_sheet_index = i
+                if all(sheet_index != -1 for sheet_index in [cay_hang_nam_sheet_index, cay_trong_chu_yeu_sheet_index, cay_lau_nam_sheet_index]):
+                    break
+        # Bước trích xuất dữ liệu    
+        # xử lý các sheet cùng sheet index - tách từng df ra
+        
+        # insert theo tháng
+            # sản phẩm công nghiệp
+        industry_product_df = extract_primarily_industry_product_data(pd.read_excel(excel_file, sheet_name= all_sheets[san_pham_cong_nghiep_index], header= None), month= month)
+            
+        # insert theo quý
+            # chăn nuôi
+        channuoi_sheet = pd.read_excel(excel_file, sheet_name= all_sheets[chan_nuoi_sheet_index], header= None)
+        start_index, end_index = search_start_and_end_index(channuoi_title, channuoi_sheet)
+        channuoi_sheet = channuoi_sheet.iloc[start_index:end_index, ::].dropna().reset_index(drop= True)
+        channuoi_sheet["unit"] = channuoi_sheet[0].str.extract(r"\((.*?)\)")  
+        column_name = [] #đặt tên cho cột
+        channuoi_sheet.columns = column_name
+
+            # lâm nghiệp
+        lamnghiep_sheet = pd.read_excel(excel_file, sheet_name= all_sheets[lam_nghiep_sheet_index], header= None)
+        start_index, end_index = search_start_and_end_index(lamnghiep_title, lamnghiep_sheet )
+        lamnghiep_sheet = lamnghiep_sheet.iloc[start_index: end_index, ::].dropna().reset_index(drop= True)
+            # trích xuất đơn vị cho df lamnghiep
+        lamnghiep_sheet["unit"] = lamnghiep_sheet[0].str.extract(r"\((.*?)\)")
+        lamnghiep_sheet = lamnghiep_sheet.fillna('Ha')
+        column_name = [] #đặt tên cho cột
+        lamnghiep_sheet.columns = column_name
+        
+            # thủy sản
+        thuysan_sheet =  pd.read_excel(excel_file, sheet_name= all_sheets[thuy_san_sheet_index])
+        start_index, end_index = search_start_and_end_index(thuysan_title, thuysan_sheet)
+        # trích unit cho df
+        unit = thuysan_sheet.iloc[start_index: end_index, ::].reset_index(drop= True).iloc[2, 6]
+        thuysan_sheet = thuysan_sheet.iloc[start_index: end_index, ::].dropna().reset_index(drop= True)
+        column_name = [] # đặt tên cho cột
+        thuysan_sheet.columns = column_name
+        thuysan_sheet['unit'] = unit
+
+        # insert theo năm
+        if quarter == 4:
+            next
+            # lâu năm
+            caylaunam_sheet = pd.read_excel(excel_file, sheet_name= all_sheets[cay_lau_nam_sheet_index], header= None)
+            start_index, end_index = search_start_and_end_index(launam_title, caylaunam_sheet)
+            caylaunam_sheet = caylaunam_sheet.iloc[start_index : end_index, [0,2]].reset_index(drop= True)
+                # tách df sản lượng và diện tích
+            start_index_area = -1 
+            start_index_production = -1 
+            i = 0
+            col_0 = caylaunam_sheet[0]
+            for row in col_0:
+                if isinstance(row, str) and 'dientichgieotrong' in clean_text(row): start_index_area = i    
+                if isinstance(row, str) and 'sanluongnghintan' in clean_text(row): start_index_production = i
+                i += 1
+            if start_index_area < start_index_production:
+                area_df = caylaunam_sheet.iloc[start_index_area: start_index_production, ::].reset_index(drop= True)
+                production_df = caylaunam_sheet.iloc[start_index_production: len(caylaunam_sheet), ::].reset_index(drop = True)
+            
+            area_unit = re.search(r"\((.*?)\)" ,area_df.iloc[0, 0])
+            production_unit = re.search(r"\((.*?)\)" , production_df.iloc[0, 0])
+            column_name = [ 'product' ,f'year_{year}']
+            area_df.columns = column_name
+            production_df.columns = column_name
+
+            production_df['unit'] = production_unit.group(1)
+            area_df['unit'] = area_unit.group(1)        
+
+            # hằng năm
+            cayhangnam_sheet = pd.read_excel(excel_file, sheet_name= all_sheets[cay_hang_nam_sheet_index], header= None)
+            start_index, end_index = search_start_and_end_index(hangnam_title, cayhangnam_sheet)
+            cayhangnam_sheet = cayhangnam_sheet.iloc[start_index + 1: end_index, [0, 2]].reset_index(drop= True)
+            
+            cayhangnam_sheet[2] = cayhangnam_sheet[2].fillna(' ')
+            cayhangnam_sheet = cayhangnam_sheet.dropna().reset_index(drop= True)
+            column_name  = ['product', 'values']
+            cayhangnam_sheet.columns = column_name
+            cayhangnam_sheet["unit"] = cayhangnam_sheet['product'].str.extract(r"\((.*?)\)").fillna(' ')
+            
+            # cây chủ yếu
+            caychuyeu_sheet = pd.read_excel(excel_file, sheet_name= all_sheets[cay_trong_chu_yeu_sheet_index], header= None)
+            start_index, end_index = search_start_and_end_index(chuyeu_title, caychuyeu_sheet)
+            caychuyeu_df = caychuyeu_sheet.iloc[start_index + 1 : end_index, [0, 1, 3]]    .reset_index(drop= True)
+
+
+            col_0 = caychuyeu_df[1]
+                # cây lương thực có hạt
+            start_index_1 = -1
+            end_index_1 = -1
+                # cây chất bột có củ
+            start_index_2 = -1
+
+            col_0 = caychuyeu_df[0]
+            i = 0
+            for row in col_0:
+                if isinstance(row, str) and 'cohat' in clean_text(row): start_index_1 = i
+                if isinstance(caychuyeu_df.iloc[i, 1], str) and 'tongsanluong' in clean_text(caychuyeu_df.iloc[i, 1]) : end_index_1 = i - 1
+                if isinstance(row, str) and 'cocu' in clean_text(row) and start_index_1 != -1 : start_index_2 = i
+                i += 1
+
+            column_name = ['product_and_infor', f'value_2019']
+            cohat_df = caychuyeu_df.iloc[start_index_1:end_index_1, 1:].dropna(subset=[1]).reset_index(drop= True)
+            cocu_df = caychuyeu_df.iloc[start_index_2: len(caychuyeu_df), 1:].dropna(subset=[1]).reset_index(drop= True)
+            cohat_df.columns = column_name
+            cocu_df.columns = column_name
+            cohat_df['unit'] = cohat_df['product_and_infor'].str.extract(r"\((.*?)\)").fillna(' ')
+            cocu_df['unit'] = cohat_df['product_and_infor'].str.extract(r"\((.*?)\)").fillna(' ')
+
+            # load lên silver layer
+            
+    
 
 
 def main_func():

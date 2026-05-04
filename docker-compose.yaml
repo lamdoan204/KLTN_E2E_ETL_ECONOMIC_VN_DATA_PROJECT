@@ -317,7 +317,19 @@ services:
         condition: service_healthy
       airflow-init:
         condition: service_completed_successfully
+  
+
+
+  
+  python:
+    image: python:3.11
+    container_name: python_container
+    working_dir: /app
+    command: tail -f /dev/null
+    volumes:
+      - ./python_app:/app
 
 volumes:
   postgres-db-volume:
   minio_data:
+  
