@@ -319,17 +319,46 @@ services:
         condition: service_completed_successfully
   
 
+  spark-master:
+    build: ./spark
+    # image: apache/spark:3.5.8
+    container_name: spark-master
+    environment:
+      - SPARK_MODE=master
+    ports:
+      - "7077:7077"
+      - "8081:8080"
+    volumes:
+      - ./spark/spark_apps:/opt/spark/apps
+    restart: always
+    stdin_open: true
+    command: /bin/bash
 
-  
+  spark-worker:
+    build: ./spark
+    # image: apache/spark:3.5.8
+    container_name: spark-worker
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+    
+    depends_on:
+      - spark-master
+    restart: always
+    volumes:
+      - ./spark/spark_apps:/opt/spark/apps
+    stdin_open: true
+    command: /bin/bash
+    
   python:
     image: python:3.11
     container_name: python_container
     working_dir: /app
-    command: tail -f /dev/null
     volumes:
       - ./python_app:/app
 
 volumes:
   postgres-db-volume:
   minio_data:
+  spark_apps:
   
