@@ -62,6 +62,9 @@ def extract_data_from_GDP(excel_file: pd.ExcelFile, year, month):
             comparative_df['sub_sector'] = comparative_df['sub_sector'].str.replace(';', ',').str.strip()
             current_df['value'] = current_df['current_value']
             comparative_df['value'] = comparative_df['comparative_value']
+
+            comparative_df = comparative_df[comparative_df['sub_sector'] != 'Công nghiệp'].reset_index(drop= True)
+            current_df = current_df[current_df['sub_sector'] != 'Công nghiệp'].reset_index(drop= True)
             
 
             insert_df_to_table_silver_layer(current_df, 'gdp')
@@ -73,6 +76,7 @@ def extract_data_from_GDP(excel_file: pd.ExcelFile, year, month):
             
             gdp_hh_sheet = None
             gdp_ss_sheet = None
+            sectors = ['Nông, lâm nghiệp và thủy sản', 'Công nghiệp và xây dựng', 'Dịch vụ']
             
             for i in range(len(all_sheets)):
                 current_sheet = pd.read_excel(excel_file, sheet_name= all_sheets[i], header= None)
@@ -94,7 +98,9 @@ def extract_data_from_GDP(excel_file: pd.ExcelFile, year, month):
                 # lấy đơn vị 
             unit = None
             for i in range(len(gdp_hh_sheet)):
-                if isinstance(gdp_hh_sheet.iloc[i, 7], str): unit = gdp_hh_sheet.iloc[i, 7]
+                if isinstance(gdp_hh_sheet.iloc[i, 7], str): 
+                    unit = gdp_hh_sheet.iloc[i, 7]
+                    break
             # lấy các cột cần thiết
             gdp_hh_sheet = gdp_hh_sheet.iloc[::, [1,3]]
             gdp_ss_sheet = gdp_ss_sheet.iloc[::,[1,3]]
@@ -147,6 +153,9 @@ def extract_data_from_GDP(excel_file: pd.ExcelFile, year, month):
             gdp_hh_sheet['sub_sector'] = gdp_hh_sheet['sub_sector'].str.replace(';', ',').str.strip()
             gdp_ss_sheet['sub_sector'] = gdp_ss_sheet['sub_sector'].str.replace(';', ',').str.strip()
 
+            gdp_ss_sheet = gdp_ss_sheet[gdp_ss_sheet['sub_sector'] != 'Công nghiệp'].reset_index(drop= True)
+            gdp_hh_sheet = gdp_hh_sheet[gdp_hh_sheet['sub_sector'] != 'Công nghiệp'].reset_index(drop= True)
+
             insert_df_to_table_silver_layer(gdp_ss_sheet, 'gdp')
             insert_df_to_table_silver_layer(gdp_hh_sheet, 'gdp')
             
@@ -171,6 +180,7 @@ def extract_data_from_GDP(excel_file: pd.ExcelFile, year, month):
                     return
             # Clean Data
             # lấy những cột cần thiết
+            unit = str(gdp_hh_sheet.iloc[3, 2]).split('(')[1].split(')')[0]
             gdp_hh_sheet = gdp_hh_sheet.iloc[::, [0,1,3]]
             gdp_ss_sheet = gdp_ss_sheet.iloc[::, [0, 1, 3]]
             # xóa các hàng thừa
@@ -190,7 +200,7 @@ def extract_data_from_GDP(excel_file: pd.ExcelFile, year, month):
             gdp_hh_sheet = gdp_hh_sheet.iloc[num_of_remove_row_hh::, ::].reset_index(drop= True)
             gdp_ss_sheet = gdp_ss_sheet.iloc[num_of_remove_row_ss:: , ::]. reset_index(drop= True)
 
-            column_names = ['sector', 'sector_and_sub_sector', f'year_{year}']
+            column_names = ['sector', 'sub_sector', 'value']
             gdp_hh_sheet.columns = column_names
             gdp_ss_sheet.columns = column_names
 
@@ -247,8 +257,11 @@ def extract_data_from_GDP(excel_file: pd.ExcelFile, year, month):
             gdp_hh_sheet['ingest_at'] = gdp_ss_sheet['ingest_at'] = pd.Timestamp.now()
             gdp_hh_sheet['unit'] = gdp_ss_sheet['unit'] = unit
 
-            insert_df_to_table_silver_layer(gdp_hh_sheet, 'gdp', year, quarter)
-            insert_df_to_table_silver_layer(gdp_ss_sheet, 'gdp', year, quarter)
+            gdp_ss_sheet = gdp_ss_sheet[gdp_ss_sheet['sub_sector'] != 'Công nghiệp'].reset_index(drop= True)
+            gdp_hh_sheet = gdp_hh_sheet[gdp_hh_sheet['sub_sector'] != 'Công nghiệp'].reset_index(drop= True)
+
+            insert_df_to_table_silver_layer(gdp_hh_sheet, 'gdp', year)
+            insert_df_to_table_silver_layer(gdp_ss_sheet, 'gdp', year)
 
 
 
@@ -575,7 +588,7 @@ def extract_data_for_Product_Productivity_fact(excel_file: pd.ExcelFile, year, m
             
             area_unit = re.search(r"\((.*?)\)" ,area_df.iloc[0, 0])
             production_unit = re.search(r"\((.*?)\)" , production_df.iloc[0, 0])
-            column_name = [ 'product' ,f'year_{year}']
+            column_name = [ 'product' , 'value']
             area_df.columns = column_name
             production_df.columns = column_name
 
@@ -640,14 +653,21 @@ def main_func():
         
         parts = str.split(obj, '/')
 
-        year = parts[1]
-        month = parts[2]
+        year = int(parts[1])
+        month = int(parts[2])
 
 
         excel_file = get_excel_file(bucket_name, obj)
+
+        if excel_file is None: print('Đọc file Excel không thành công')
+        
         print('duyệt qua từng đường dẫn đọc file và trích xuất dữ liệu')
         print(f'FILE EXCEL: YEAR : {year}, MONTH = {month} ')
+
         extract_data_from_GDP(excel_file, year, month)
+
+
+        # extract_data_from_GDP(excel_file, year, month)
 
         # extract_data_from_International_Ecommerce(excel_file, year, month)
 

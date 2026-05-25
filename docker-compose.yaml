@@ -49,6 +49,13 @@ x-airflow-common:
       condition: service_healthy
 
 services:
+  hive:
+    build: ./hive
+    container_name: hive
+    environment:
+      SERVICE_NAME: metastore
+    ports:
+      - "9083:9083"
   postgres:
     image: postgres:15
     environment:
@@ -335,8 +342,8 @@ services:
     command: /bin/bash
 
   spark-worker:
-    build: ./spark
-    # image: apache/spark:3.5.8
+    # build: ./spark
+    image: kltn_e2e_etl_economic_vn_data_project-spark-master:latest
     container_name: spark-worker
     environment:
       - SPARK_MODE=worker
