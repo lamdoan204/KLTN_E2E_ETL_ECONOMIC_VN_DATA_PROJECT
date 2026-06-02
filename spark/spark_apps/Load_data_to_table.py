@@ -56,7 +56,7 @@ builder = SparkSession.builder \
 spark = builder.getOrCreate()
 
 
-def insert_df_to_table_silver_layer(df: pd.DataFrame, table_name, year = None):
+def insert_df_to_table_silver_layer(df: pd.DataFrame, table_name, year = None, quarter = None):
     print('Bắt đầu insert dữ liệu vào SILVER layer')
     try:
         
@@ -70,11 +70,12 @@ def insert_df_to_table_silver_layer(df: pd.DataFrame, table_name, year = None):
 )
         spark_df.printSchema()
         if table_name == 'gdp':
+            print("Đang tải dữ liệu vào Silver.GDP")
             df = spark_df.select('sector', 'sub_sector', 'year', 'quarter', 'value', 'type', 'unit', 'ingest_at') # sắp xếp lại columns
             df.show()
             
             # code quý 4 trước 2018: tính lại từ tổng quý 1 2 3
-            if year is not None:
+            if year < 2018 and quarter == 4:
                 spark.sql(
                     f""" 
                     select
@@ -100,14 +101,61 @@ def insert_df_to_table_silver_layer(df: pd.DataFrame, table_name, year = None):
                                 from cur_table as c 
                                 join pre_table as p using(sub_sector) 
                                 """)
-                # c.sub_sector = p.sub_sector
+        elif table_name == 'investment':
+            print("Đang tải dữ liệu vào Silver.INVESTMENT")
+            df = spark_df.select('investment_name', 'value', 'unit', 'quarter', 'year',  'ingest_at') # sắp xếp lại columns
+            df.show()
+            
+        elif table_name == 'international_ecommerce':
+            print('Đang tải dữ liệu vào Silver.International_ecomerce !!!')
+            df = spark_df.select('type', 'product_name', 'value', 'unit', 'quantity', 'quarter', 'year', 'ingest_at')
+            df.show()
+        elif table_name == 'forestry':
+            print('Đang tải dữ liệu vào Silver.Forestry !!!!!')
+            df = spark_df.select('forestry_indicator', 'value', 'unit', 'quarter', 'year', 'ingest_at')
+            df.show()
+        elif table_name == 'livestock':
+            print('Đang tải dữ liệu vào SILVER.Livestock !!!!!')
+            df = spark_df.select('livestock_indicator', 'value', 'unit', 'quarter', 'year', 'ingest_at')
+            df.show()
+            
+        elif table_name == 'aquatic_products':
+            print("Đang tải dữ liệu vào SILVER.Aquatic_products")
+            df = spark_df.select('aquatic_type', 'product_name', 'value', 'unit', 'quarter', 'year', 'ingest_at')
+            df.show()
+        elif table_name == 'industry_product':
+            print("Đang tải dữ liệu vào SILVER.Industry_product !!!!!")
+            df = spark_df.select('product_name', 'value', 'unit', 'month', 'quarter' 'year', 'ingest_at')
+            df.show()
+        elif table_name == 'investment_by_sector':
+            next
+        elif table_name == 'annual_crops':
+            print("Đang tải dữ liệu vào SILVER.annual_crops !!!!!")
+            df = spark_df.select('crop_name', 'production', 'production_unit', 'area', 'area_unit', 'yield', 'yield_unit', 'year', 'ingest_at')
+            df.show()
+            
+        elif table_name == 'staple_crops':
+            print("Đang tải dữ liệu vào SILVER.Staple_crops !!!!!")
+            df = spark_df.select('crop_name', 'production', 'production_unit', 'area', 'area_unit', 'yield', 'yield_unit', 'year', 'ingest_at')
+            df.show()
+        else: 
+            # cây lâu năm
+            print('Đang tải dữ liệu vào SILVER.Perennial_Crops')
+            df = spark_df.select('crop_name',  'production',  'production_unit', 'yield', 'yield_unit', 'area', 'area_unit', 'year', 'ingest_at')
+            df.show()
+
+        
+
         df.write.format("delta") \
             .mode("append") \
             .option("mergeSchema", "true") \
             .saveAsTable(f"silver.{table_name}")
+        print(f"Tải dữ liệu vào table: {table_name} hoàn tất !!!!!!!! {year} {quarter}")
+
+    
         
 
     except Exception as e:
-        print(f'AN ERROR OCCURED WHEN LOAD DF TO {table_name} !!!!!!!!!!!!!! \n {e}')
+        print(f'AN ERROR OCCURED WHEN LOAD DF TO {table_name} - {year} {quarter} !!!!!!!!!!!!!!  \n {e}')
     
     next

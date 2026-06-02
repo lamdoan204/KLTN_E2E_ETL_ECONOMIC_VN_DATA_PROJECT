@@ -29,7 +29,7 @@ x-airflow-common:
     AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
     # WARNING: Use _PIP_ADDITIONAL_REQUIREMENTS option ONLY for a quick checks
     # for other purpose (development, test and especially production usage) build/extend Airflow image.
-    _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:- minio requests pandas openpyxl}
+    _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:- minio requests pandas openpyxl }
     # The following line can be used to set a custom config file, stored in the local config folder
     AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
   volumes:
@@ -39,6 +39,7 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
     - ${AIRFLOW_PROJ_DIR:-.}/tasks:/opt/airflow/tasks
     - ${AIRFLOW_PROJ_DIR:-.}/Code:/opt/airflow/Code
+    - /var/run/docker.sock:/var/run/docker.sock
 
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
@@ -336,7 +337,7 @@ services:
       - "7077:7077"
       - "8081:8080"
     volumes:
-      - ./spark/spark_apps:/opt/spark/apps
+      - ./code_scripts:/opt/spark/apps
     restart: always
     stdin_open: true
     command: /bin/bash
@@ -350,20 +351,23 @@ services:
       - SPARK_MASTER_URL=spark://spark-master:7077
     
     depends_on:
-      - spark-master
+      - spark-master            
     restart: always
     volumes:
       - ./spark/spark_apps:/opt/spark/apps
     stdin_open: true
     command: /bin/bash
-    
   python:
-    image: python:3.11
+    build: ./python
     container_name: python_container
     working_dir: /app
-    volumes:
-      - ./python_app:/app
 
+    volumes:
+      - ./code_scripts:/app
+
+    command: tail -f /dev/null
+    
+    
 volumes:
   postgres-db-volume:
   minio_data:
