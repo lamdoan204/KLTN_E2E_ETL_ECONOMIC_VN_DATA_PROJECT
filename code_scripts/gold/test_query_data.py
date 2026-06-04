@@ -1,11 +1,8 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.types import StructType, StringType, IntegerType
-import pandas as pd
-
-from pyspark.sql.functions import col
+import os
 
 builder = SparkSession.builder \
-    .appName("Delta-MinIO") \
+    .appName("Delta-MinIO-Gold") \
     .config(
         "spark.sql.extensions",
         "io.delta.sql.DeltaSparkSessionExtension"
@@ -24,7 +21,7 @@ builder = SparkSession.builder \
     ) \
     .config(
         "spark.sql.warehouse.dir",
-        "s3a://warehouse/"
+        "/tmp/spark-warehouse"
     ) \
     .config(
         "spark.hadoop.fs.s3a.endpoint",
@@ -52,6 +49,46 @@ builder = SparkSession.builder \
     ) \
     .enableHiveSupport()
 
-
 spark = builder.getOrCreate()
 
+tables = [
+    # "gdp",
+    # "investment",
+    # "international_ecommerce",
+    # "forestry",
+    # "livestock",
+    # "aquatic_products",
+    # "industry_product",
+    # "investment_by_sector",
+    "annual_crops",
+    "staple_crops",
+    "perennial_crops"
+]
+
+output_base = "/tmp/silver_csv"
+
+for table_name in tables:
+
+    print(f"Exporting silver.{table_name}")
+
+    df = spark.sql(f"""
+        SELECT *
+        FROM silver.{table_name}
+    """)
+
+    output_path = os.path.join(
+        output_base,
+        table_name
+    )
+
+    (
+        df.coalesce(1)
+        .write
+        .mode("overwrite")
+        .option("header", "true")
+        .csv(output_path)
+    )
+
+    print(f"Done: {output_path}")
+
+print("EXPORT COMPLETED")

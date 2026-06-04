@@ -79,7 +79,7 @@ def craw_and_load_report_economic_excel_files_to_bronze():
         this_page_titles = []
         for x in the_h3:
             t = x.get_text(strip= True)
-            if '2025' in t:
+            if '2010' in t:
                 flag = False
                 break
             this_page_titles.append(t)
@@ -88,7 +88,7 @@ def craw_and_load_report_economic_excel_files_to_bronze():
         this_page_links = []
         for x in the_a:
             t = x['href']
-            if '2025' in t: break
+            if '2010' in t: break
             this_page_links.append(t)
 
         titles += this_page_titles
@@ -190,8 +190,8 @@ def craw_and_load_report_economic_excel_files_to_bronze():
                 and not file_name.lower().endswith('.xlsx'):
 
             print('Bắt đầu convert XLS -> XLSX')
-
-            upload_path = convert_xls_to_xlsx_file(local_path)
+            output_dir = os.path.dirname(local_path)
+            upload_path = convert_xls_to_xlsx_file(local_path, output_dir)
 
             upload_name = os.path.basename(upload_path)
 

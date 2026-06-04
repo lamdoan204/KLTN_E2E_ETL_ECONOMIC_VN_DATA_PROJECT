@@ -59,30 +59,93 @@ spark = builder.getOrCreate()
 def insert_df_to_table_silver_layer(df: pd.DataFrame, table_name, year=None, quarter=None):
 
     print('Bắt đầu insert dữ liệu vào SILVER layer')
-
+   
     try:
+        for c in df.columns:
+
+            if c in [
+                'value',
+                'production',
+                'area',
+                'yield',
+                'quantity'
+            ]:
+
+                df[c] = pd.to_numeric(
+                    df[c],
+                    errors='coerce'
+                ).astype(float)
+
+            elif c in [
+                'year',
+                'quarter',
+                'month'
+            ]:
+
+                df[c] = pd.to_numeric(
+                    df[c],
+                    errors='coerce'
+                ).astype('int32')
+
+            elif c == 'ingest_at':
+
+                df[c] = pd.to_datetime(
+                    df[c],
+                    errors='coerce'
+                )
+
 
         # ===== GDP xử lý riêng =====
         if table_name == 'gdp':
 
-            df = df[
-                [
-                    'sector',
-                    'sub_sector',
-                    'year',
-                    'quarter',
-                    'value',
-                    'type',
-                    'unit',
-                    'ingest_at'
-                ]
-            ].copy()
-
-            df['year'] = pd.to_numeric(df['year'])
-            df['quarter'] = pd.to_numeric(df['quarter'])
-            df['value'] = pd.to_numeric(df['value'])
+            
 
             spark_df = spark.createDataFrame(df)
+            spark_df = (
+                        spark_df
+                        .select(
+                            'sector',
+                            'sub_sector',
+                            'year',
+                            'quarter',
+                            'value',
+                            'type',
+                            'unit',
+                            'ingest_at'
+                        )
+                        .withColumn(
+                            "sector",
+                            col("sector").cast("string")
+                        )
+                        .withColumn(
+                            "sub_sector",
+                            col("sub_sector").cast("string")
+                        )
+                        .withColumn(
+                            "year",
+                            col("year").cast("int")
+                        )
+                        .withColumn(
+                            "quarter",
+                            col("quarter").cast("int")
+                        )
+                        .withColumn(
+                            "value",
+                            col("value").cast("double")
+                        )
+                        .withColumn(
+                            "type",
+                            col("type").cast("string")
+                        )
+                        .withColumn(
+                            "unit",
+                            col("unit").cast("string")
+                        )
+                        .withColumn(
+                            "ingest_at",
+                            col("ingest_at").cast("timestamp")
+                        )
+                    )
 
             spark_df.show()
 
@@ -150,7 +213,7 @@ def insert_df_to_table_silver_layer(df: pd.DataFrame, table_name, year=None, qua
                 spark_df
                 .select(
                     'type','product_name','value',
-                    'unit','quantity','month',
+                    'unit','quantity', 'quantity_unit','month',
                     'quarter','year','ingest_at'
                 )
                 .withColumn("month", col("month").cast("int"))
