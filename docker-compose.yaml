@@ -29,7 +29,7 @@ x-airflow-common:
     AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
     # WARNING: Use _PIP_ADDITIONAL_REQUIREMENTS option ONLY for a quick checks
     # for other purpose (development, test and especially production usage) build/extend Airflow image.
-    _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:- minio requests pandas openpyxl }
+    _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-minio requests pandas openpyxl }
     # The following line can be used to set a custom config file, stored in the local config folder
     AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
   volumes:
@@ -50,6 +50,23 @@ x-airflow-common:
       condition: service_healthy
 
 services:
+  hive-postgres:
+    image: postgres:15
+    container_name: hive-postgres
+    environment:
+      POSTGRES_USER: hive
+      POSTGRES_PASSWORD: hive
+      POSTGRES_DB: metastore
+    volumes:
+      - hive-postgres-volume:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "hive", "-d", "metastore"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    restart: always
+ 
+ 
   hive:
     build: ./hive
     container_name: hive
@@ -57,6 +74,14 @@ services:
       SERVICE_NAME: metastore
     ports:
       - "9083:9083"
+    depends_on:
+      hive-postgres:
+        condition: service_healthy
+    volumes:
+      - ./hive/hive-site.xml:/opt/hive/conf/hive-site.xml
+    healthcheck:
+        test: ["CMD", "nc", "-z", "localhost", "9083"]
+
     
   postgres:
     image: postgres:15
@@ -373,4 +398,4 @@ volumes:
   postgres-db-volume:
   minio_data:
   spark_apps:
-  
+  hive-postgres-volume:  

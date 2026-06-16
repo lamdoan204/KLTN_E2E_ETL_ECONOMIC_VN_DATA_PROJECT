@@ -1,33 +1,77 @@
 <configuration>
-
+    <!-- ===== S3/MinIO config ===== -->
     <property>
         <name>fs.s3a.impl</name>
         <value>org.apache.hadoop.fs.s3a.S3AFileSystem</value>
     </property>
-
     <property>
         <name>fs.s3a.endpoint</name>
         <value>http://minio:9000</value>
     </property>
-
     <property>
         <name>fs.s3a.access.key</name>
         <value>minioadmin</value>
     </property>
-
     <property>
         <name>fs.s3a.secret.key</name>
         <value>minioadmin</value>
     </property>
-
     <property>
         <name>fs.s3a.path.style.access</name>
         <value>true</value>
     </property>
-
     <property>
         <name>fs.s3a.connection.ssl.enabled</name>
         <value>false</value>
     </property>
+    <!-- ✅ FIX: Tắt signing request (MinIO không cần) -->
+    <property>
+        <name>fs.s3a.impl.disable.cache</name>
+        <value>false</value>
+    </property>
 
+    <!-- ===== Metastore DB config ===== -->
+    <property>
+        <name>javax.jdo.option.ConnectionURL</name>
+        <value>jdbc:postgresql://hive-postgres:5432/metastore</value>
+    </property>
+    <property>
+        <name>javax.jdo.option.ConnectionDriverName</name>
+        <value>org.postgresql.Driver</value>
+    </property>
+    <property>
+        <name>javax.jdo.option.ConnectionUserName</name>
+        <value>hive</value>
+    </property>
+    <property>
+        <name>javax.jdo.option.ConnectionPassword</name>
+        <value>hive</value>
+    </property>
+    <!-- ✅ FIX: Datanucleus connection pool settings -->
+    <property>
+        <name>datanucleus.connectionPoolingType</name>
+        <value>BoneCP</value>
+    </property>
+
+    <!-- ===== Schema management ===== -->
+    <property>
+        <name>datanucleus.schema.autoCreateAll</name>
+        <value>false</value>
+    </property>
+    <property>
+        <name>datanucleus.schema.autoCreateTables</name>
+        <value>false</value>
+    </property>
+    <property>
+        <name>hive.metastore.schema.verification</name>
+        <value>true</value>
+    </property>
+
+    <!-- ===== Metastore URI ===== -->
+    <property>
+        <name>hive.metastore.uris</name>
+        <value>thrift://hive:9083</value>
+    </property>
+
+    
 </configuration>
