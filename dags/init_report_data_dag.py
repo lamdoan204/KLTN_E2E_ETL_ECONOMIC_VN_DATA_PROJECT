@@ -21,14 +21,14 @@ with DAG (
         task_id = 'ddl_silver_layer',
         bash_command = 'docker exec spark-master /opt/spark/bin/spark-submit silver/ddl_silver.py'
     )
-    # task_3 = BashOperator(
-    #     task_id = 'transform_and_load_data_to_silver',
-    #     bash_command = "docker exec spark-master /opt/spark/bin/spark-submit silver/Extract_Data_From_Excel_Reports.py" 
-    # )
-    task_4 = BashOperator(
-        task_id = 'ddl_gold_layer',
-        bash_command = "docker exec spark-master /opt/spark/bin/spark-submit gold/ddl_gold_layer.py" 
+    task_3 = BashOperator(
+        task_id = 'transform_and_load_data_to_silver',
+        bash_command = "docker exec spark-master /opt/spark/bin/spark-submit silver/main.py" 
     )
+    # task_4 = BashOperator(
+    #     task_id = 'ddl_gold_layer',
+    #     bash_command = "docker exec spark-master /opt/spark/bin/spark-submit gold/ddl_gold_layer.py" 
+    # )
     # task_5 = BashOperator(
     #     task_id = 'load_data_to_gold_layer',
     #     bash_command = 'docker exec spark-master /opt/spark/bin/spark-submit gold/load_data_to_gold_layer.py' 
@@ -36,3 +36,4 @@ with DAG (
     
 # task_1 >> task_2 >> task_3 >> task_4
 
+task_2 >> task_3

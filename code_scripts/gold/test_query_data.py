@@ -53,19 +53,19 @@ spark = builder.getOrCreate()
 
 tables = [
     # "gdp",
-    # "investment",
-    # "international_ecommerce",
+    "investment",
+    "international_ecommerce"
     # "forestry",
     # "livestock",
     # "aquatic_products",
     # "industry_product",
     # "investment_by_sector",
-    "annual_crops",
-    "staple_crops",
-    "perennial_crops"
+    # "annual_crops",
+    # "staple_crops",
+    # "perennial_crops"
 ]
 
-output_base = "/tmp/silver_csv"
+output_base = "/opt/spark/apps/tmp/silver_csv"
 
 for table_name in tables:
 
