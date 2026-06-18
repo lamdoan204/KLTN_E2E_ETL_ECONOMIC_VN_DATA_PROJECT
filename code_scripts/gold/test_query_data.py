@@ -53,8 +53,8 @@ spark = builder.getOrCreate()
 
 tables = [
     # "gdp",
-    "investment",
-    "international_ecommerce"
+    "investment"
+    # "international_ecommerce"
     # "forestry",
     # "livestock",
     # "aquatic_products",

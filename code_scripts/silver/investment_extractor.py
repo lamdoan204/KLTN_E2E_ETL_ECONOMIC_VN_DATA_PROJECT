@@ -4,6 +4,29 @@ from minio_funcs import *
 from reuse_function import *
 from Load_data_to_table import *
 
+
+INVESTMENT_NAME_NORMALIZATION = {
+    'Vốn đầu tư thuộc ngân sách NN'                    : 'Vốn đầu tư thuộc ngân sách Nhà nước',
+    'Vốn tín dụng đầu tư theo kế hoạch NN'             : 'Vốn tín dụng đầu tư theo kế hoạch Nhà nước',
+    'Vốn vay từ các nguồn khác  (của khu vực Nhà nước)': 'Vốn vay từ các nguồn khác (của khu vực Nhà nước)',
+    'Bên Việt Nam'                                      : 'Vốn đầu tư trực tiếp nước ngoài - Bên Việt Nam',
+    'Bên nước ngoài'                                    : 'Vốn đầu tư trực tiếp nước ngoài - Bên nước ngoài',
+}
+ 
+# Các tên bị loại bỏ vì đã được thay thế bởi các chỉ tiêu con chi tiết hơn
+INVESTMENT_NAME_EXCLUDED = {
+    'Vốn đầu tư trực tiếp nước ngoài',  # = Bên Việt Nam + Bên nước ngoài
+}
+
+def normalize_investment_name(df: pd.DataFrame) -> pd.DataFrame:
+    """Chuẩn hóa tên chỉ tiêu đầu tư và loại bỏ các dòng tổng hợp không cần thiết."""
+    # 1. Chuẩn hóa tên theo mapping
+    df['investment_name'] = df['investment_name'].replace(INVESTMENT_NAME_NORMALIZATION)
+    # 2. Loại bỏ các dòng tổng hợp đã được tách thành chỉ tiêu con
+    df = df[~df['investment_name'].isin(INVESTMENT_NAME_EXCLUDED)].reset_index(drop=True)
+    return df
+
+
 # TRÍCH XUẤT DỮ LIỆU ĐẦU TƯ KINH TẾ -  VỐN ĐẦU TƯ TOÀN XÃ HỘI
 def extract_data_from_Invesment(excel_file: pd.ExcelFile, year, month):
     try:
@@ -52,7 +75,10 @@ def extract_data_from_Invesment(excel_file: pd.ExcelFile, year, month):
         vdt_sheet['year'] = year
         vdt_sheet['quarter'] = quarter
         vdt_sheet['ingest_at'] = pd.Timestamp.now()
-        vdt_sheet = vdt_sheet.dropna()
+        
+        vdt_sheet = vdt_sheet.dropna(subset=['investment_name', 'value'])
+        vdt_sheet = normalize_investment_name(vdt_sheet)
+        
         insert_df_to_table_silver_layer(vdt_sheet, 'investment', year, quarter)
     except Exception as e:
         print(f'CÓ VẤN ĐỀ XẢY RA KHI TRÍCH XUẤT DỮ LIỆU VỐN ĐẦU TƯ TOÀN XÃ HỘI NĂM {year}, THÁNG {month}', e)
