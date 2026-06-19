@@ -50,8 +50,9 @@ def extract_data_for_Product_Productivity_fact(excel_file: pd.ExcelFile, year: i
             # insert_industry_product(excel_file, all_sheets, san_pham_cong_nghiep_index, month, year)
 
             # ── Insert theo quý ──────────────────────────────────────────────────
-            # insert_livestock(excel_file, all_sheets, chan_nuoi_sheet_index,  year, quarter)
-            insert_forestry( excel_file, all_sheets, lam_nghiep_sheet_index, year, quarter)
+            if chan_nuoi_sheet_index != -1 :
+                insert_livestock(excel_file, all_sheets, chan_nuoi_sheet_index,  year, quarter)
+            # insert_forestry( excel_file, all_sheets, lam_nghiep_sheet_index, year, quarter)
             # if year != 2017 and quarter != 1 or year != 2013 and quarter != 3:
             #     insert_aquatic_products(excel_file, all_sheets, thuy_san_sheet_index, year, quarter)
 

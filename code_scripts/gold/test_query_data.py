@@ -55,8 +55,8 @@ tables = [
     # "gdp",
     # "investment",
     # "international_ecommerce"
-    "forestry"
-    # "livestock",
+    # "forestry",
+    "livestock"
     # "aquatic_products",
     # "industry_product",
     # "investment_by_sector",
