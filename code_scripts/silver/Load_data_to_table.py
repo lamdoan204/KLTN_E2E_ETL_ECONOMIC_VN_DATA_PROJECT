@@ -2,7 +2,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StringType, IntegerType
 import pandas as pd
 from pyspark.sql.types import *
-from pyspark.sql.functions import col
+from pyspark.sql.functions import col, trim, lower
 
 builder = SparkSession.builder \
     .appName("Delta-MinIO") \
@@ -56,6 +56,52 @@ builder = SparkSession.builder \
 spark = builder.getOrCreate()
 
 
+# Map: với mỗi table, các cột "khóa định danh" dạng string không được phép
+# null / rỗng / "nan" literal. Dùng để dropna ở tầng Spark sau khi tạo spark_df,
+# như một lớp phòng thủ thứ hai (độc lập với việc dropna ở tầng pandas trước đó).
+TABLE_KEY_STRING_COLS = {
+    'gdp': ['sector', 'sub_sector'],
+    'investment': ['investment_name'],
+    'international_ecommerce': ['type', 'product_name'],
+    'forestry': ['forestry_indicator'],
+    'livestock': ['livestock_indicator'],
+    'aquatic_products': ['aquatic_type', 'product_name'],
+    'industry_product': ['product_name'],
+    'annual_crops': ['crop_name'],
+    'staple_crops': ['crop_name'],
+    'perennial_crops': ['crop_name'],
+}
+
+
+def dropna_spark_df(spark_df, key_cols):
+    """Loại bỏ các dòng mà bất kỳ cột trong key_cols bị null, hoặc là chuỗi
+    rỗng / chỉ chứa khoảng trắng, hoặc là literal 'nan'/'none'/'null'/'nat'
+    (thường sinh ra khi pandas ép kiểu str() trên NaN trước khi convert
+    sang Spark DataFrame).
+
+    key_cols: danh sách tên cột string cần đảm bảo có giá trị hợp lệ.
+    Chỉ áp dụng cho các cột thực sự tồn tại trong spark_df.
+    """
+    empty_like_literals = ['nan', 'none', 'null', 'nat', '']
+
+    existing_key_cols = [c for c in key_cols if c in spark_df.columns]
+    if not existing_key_cols:
+        return spark_df
+
+    # Bước 1: dropna chuẩn (loại các giá trị null thật sự ở các cột khóa).
+    spark_df = spark_df.dropna(subset=existing_key_cols)
+
+    # Bước 2: loại tiếp các giá trị "rỗng giả" dạng string (sau khi trim +
+    # lowercase) mà dropna() thường không bắt được, vì chúng không phải null
+    # thực sự mà là literal string như 'nan', 'NaN', '', '   '.
+    for c in existing_key_cols:
+        spark_df = spark_df.filter(
+            ~lower(trim(col(c))).isin(empty_like_literals)
+        )
+
+    return spark_df
+
+
 def insert_df_to_table_silver_layer(df: pd.DataFrame, table_name, year=None, quarter=None):
 
     print('Bắt đầu insert dữ liệu vào SILVER layer')
@@ -101,6 +147,10 @@ def insert_df_to_table_silver_layer(df: pd.DataFrame, table_name, year=None, qua
             
 
             spark_df = spark.createDataFrame(df)
+
+            # Lớp dropna thứ hai ở tầng Spark, trước khi select/cast.
+            spark_df = dropna_spark_df(spark_df, TABLE_KEY_STRING_COLS['gdp'])
+
             spark_df = (
                         spark_df
                         .select(
@@ -183,6 +233,10 @@ def insert_df_to_table_silver_layer(df: pd.DataFrame, table_name, year=None, qua
 
             # ===== tạo Spark DF cho các table khác =====
             spark_df = spark.createDataFrame(df)
+
+            # Lớp dropna thứ hai ở tầng Spark, trước khi select/cast theo table.
+            key_cols = TABLE_KEY_STRING_COLS.get(table_name, [])
+            spark_df = dropna_spark_df(spark_df, key_cols)
 
             if 'year' in spark_df.columns:
                 spark_df = spark_df.withColumn(
@@ -307,4 +361,3 @@ def insert_df_to_table_silver_layer(df: pd.DataFrame, table_name, year=None, qua
             f'AN ERROR OCCURED WHEN LOAD DF TO '
             f'{table_name} - {year} {quarter} !!!!!\n{e}'
         )
-    

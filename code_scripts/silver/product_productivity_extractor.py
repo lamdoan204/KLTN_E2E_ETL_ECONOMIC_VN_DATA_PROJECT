@@ -25,7 +25,7 @@ def extract_data_for_Product_Productivity_fact(excel_file: pd.ExcelFile, year: i
         if month % 3 != 0:
             # ── Tháng thường: chỉ trích xuất sản phẩm công nghiệp ──────────────
             san_pham_cong_nghiep_index = find_sheet_indexes_monthly(excel_file, all_sheets)
-            insert_industry_product(excel_file, all_sheets, san_pham_cong_nghiep_index, month, year)
+            # insert_industry_product(excel_file, all_sheets, san_pham_cong_nghiep_index, month, year)
 
         else:
             # ── Tháng cuối quý: trích xuất đầy đủ ──────────────────────────────
@@ -37,23 +37,24 @@ def extract_data_for_Product_Productivity_fact(excel_file: pd.ExcelFile, year: i
             ) = find_sheet_indexes_quarterly(excel_file, all_sheets)
 
             # Tháng 12: tìm thêm sheet cây trồng năm
-            if month == 12:
-                (
-                    cay_hang_nam_sheet_index,
-                    cay_lau_nam_sheet_index,
-                    cay_trong_chu_yeu_sheet_index,
-                ) = find_sheet_indexes_annual(excel_file, all_sheets)
-                insert_perennial_crops(excel_file, all_sheets, cay_lau_nam_sheet_index,        year, quarter)
-                insert_annual_crops(   excel_file, all_sheets, cay_hang_nam_sheet_index,       year, quarter)
-                insert_staple_crops(   excel_file, all_sheets, cay_trong_chu_yeu_sheet_index,  year, quarter)
-            
+            # if month == 12:
+            #     (
+            #         cay_hang_nam_sheet_index,
+            #         cay_lau_nam_sheet_index,
+            #         cay_trong_chu_yeu_sheet_index,
+            #     ) = find_sheet_indexes_annual(excel_file, all_sheets)
+            #     insert_perennial_crops(excel_file, all_sheets, cay_lau_nam_sheet_index,        year, quarter)
+            #     insert_annual_crops(   excel_file, all_sheets, cay_hang_nam_sheet_index,       year, quarter)
+            #     insert_staple_crops(   excel_file, all_sheets, cay_trong_chu_yeu_sheet_index,  year, quarter)
+            w
             # ── Insert theo tháng ────────────────────────────────────────────────
-            insert_industry_product(excel_file, all_sheets, san_pham_cong_nghiep_index, month, year)
+            # insert_industry_product(excel_file, all_sheets, san_pham_cong_nghiep_index, month, year)
 
             # ── Insert theo quý ──────────────────────────────────────────────────
-            insert_livestock(excel_file, all_sheets, chan_nuoi_sheet_index,  year, quarter)
-            insert_forestry( excel_file, all_sheets, lam_nghiep_sheet_index, year, quarter)
-            insert_aquatic_products(excel_file, all_sheets, thuy_san_sheet_index, year, quarter)
+            # insert_livestock(excel_file, all_sheets, chan_nuoi_sheet_index,  year, quarter)
+            # insert_forestry( excel_file, all_sheets, lam_nghiep_sheet_index, year, quarter)
+            if year != 2017 and quarter != 1 or year != 2013 and quarter != 3:
+                insert_aquatic_products(excel_file, all_sheets, thuy_san_sheet_index, year, quarter)
 
             
 
