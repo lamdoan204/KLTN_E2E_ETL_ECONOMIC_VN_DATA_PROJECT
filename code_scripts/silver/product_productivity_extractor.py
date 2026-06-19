@@ -1,4 +1,4 @@
-import pyspark.pandas as pd
+import pandas as pd
 
 from minio_funcs import *
 from reuse_function import *
@@ -43,7 +43,10 @@ def extract_data_for_Product_Productivity_fact(excel_file: pd.ExcelFile, year: i
                     cay_lau_nam_sheet_index,
                     cay_trong_chu_yeu_sheet_index,
                 ) = find_sheet_indexes_annual(excel_file, all_sheets)
-
+                insert_perennial_crops(excel_file, all_sheets, cay_lau_nam_sheet_index,        year, quarter)
+                insert_annual_crops(   excel_file, all_sheets, cay_hang_nam_sheet_index,       year, quarter)
+                insert_staple_crops(   excel_file, all_sheets, cay_trong_chu_yeu_sheet_index,  year, quarter)
+            
             # ── Insert theo tháng ────────────────────────────────────────────────
             insert_industry_product(excel_file, all_sheets, san_pham_cong_nghiep_index, month, year)
 
@@ -52,13 +55,7 @@ def extract_data_for_Product_Productivity_fact(excel_file: pd.ExcelFile, year: i
             insert_forestry( excel_file, all_sheets, lam_nghiep_sheet_index, year, quarter)
             insert_aquatic_products(excel_file, all_sheets, thuy_san_sheet_index, year, quarter)
 
-            # ── Insert theo năm (chỉ tháng 12) ──────────────────────────────────
-            if month == 12:
-                insert_perennial_crops(excel_file, all_sheets, cay_lau_nam_sheet_index,        year, quarter)
-                insert_annual_crops(   excel_file, all_sheets, cay_hang_nam_sheet_index,       year, quarter)
-                insert_staple_crops(   excel_file, all_sheets, cay_trong_chu_yeu_sheet_index,  year, quarter)
-            else:
-                print('Không phải dữ liệu quý 4 !!!!!!')
+            
 
     except Exception as e:
         print(

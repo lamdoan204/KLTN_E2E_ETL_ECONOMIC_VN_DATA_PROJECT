@@ -42,11 +42,11 @@ def main_func():
 
         # extract_data_from_International_Ecommerce(excel_file, year, month)
 
-        extract_data_from_Invesment(excel_file, year, month)
+        # extract_data_from_Invesment(excel_file, year, month)
 
         # # extract_data_from_Investment_by_Sector(excel_file, year, month)
 
-        # extract_data_for_Product_Productivity_fact(excel_file, year, month)
+        extract_data_for_Product_Productivity_fact(excel_file, year, month)
         
     print(f"Tải thành công dữ liệu từ file: tháng: {month} - năm: {year} lên SILVER LAYER")
 
