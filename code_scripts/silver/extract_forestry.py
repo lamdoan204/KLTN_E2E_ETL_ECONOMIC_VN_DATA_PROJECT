@@ -52,6 +52,7 @@ def insert_forestry(excel_file, all_sheets, sheet_index: int, year: int, quarter
         .str.replace(r'\s*\(.*?\)', '', regex=True)
         .str.strip()
     )
+    
 
     # Đồng bộ tên chỉ tiêu cũ (2018) và mới
     mapping_indicators = {
