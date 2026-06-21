@@ -44,8 +44,8 @@ def extract_data_for_Product_Productivity_fact(excel_file: pd.ExcelFile, year: i
                     cay_lau_nam_sheet_index,
                     cay_trong_chu_yeu_sheet_index,
                 ) = find_sheet_indexes_annual(excel_file, all_sheets, year)
-                insert_perennial_crops(excel_file, all_sheets, cay_lau_nam_sheet_index,        year, quarter)       
-                # insert_annual_crops(   excel_file, all_sheets, cay_hang_nam_sheet_index,       year, quarter)
+                # insert_perennial_crops(excel_file, all_sheets, cay_lau_nam_sheet_index,        year, quarter)       
+                insert_annual_crops(   excel_file, all_sheets, cay_hang_nam_sheet_index,       year, quarter)
                 # insert_staple_crops(   excel_file, all_sheets, cay_trong_chu_yeu_sheet_index,  year, quarter)
             # ── Insert theo tháng ────────────────────────────────────────────────
             # insert_industry_product(excel_file, all_sheets, san_pham_cong_nghiep_index, month, year)
