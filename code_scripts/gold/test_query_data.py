@@ -60,8 +60,8 @@ tables = [
     # "aquatic_products",
     # "industry_product",
     # "investment_by_sector",
-    "annual_crops"
-    # "staple_crops",
+    # "annual_crops",
+    "staple_crops"
     # "perennial_crops"
 ]
 
