@@ -1,4 +1,5 @@
 import pyspark.pandas as pd
+import gc
 
 from minio_funcs import *
 from reuse_function import *
@@ -32,7 +33,9 @@ def main_func():
 
         excel_file = get_excel_file(bucket_name, obj)
 
-        if excel_file is None: print('Đọc file Excel không thành công')
+        if excel_file is None:
+            print('Đọc file Excel không thành công')
+            continue
         
         print('duyệt qua từng đường dẫn đọc file và trích xuất dữ liệu')
 
@@ -47,6 +50,11 @@ def main_func():
         extract_data_from_Investment_by_Sector(excel_file, year, month)
 
         extract_data_for_Product_Productivity_fact(excel_file, year, month)
+
+        # Giải phóng bộ nhớ RAM của file hiện tại trước khi xử lý file tiếp theo
+        del excel_file
+        spark.catalog.clearCache()
+        gc.collect()
         
     print(f"Tải thành công dữ liệu từ file: tháng: {month} - năm: {year} lên SILVER LAYER")
 

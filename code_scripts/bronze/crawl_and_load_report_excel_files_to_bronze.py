@@ -6,7 +6,7 @@ from minio import Minio
 from reuse_function import *
 from datetime import datetime, timezone, timedelta
 VN_TZ = timezone(timedelta(hours=7))
-def get_time_of_next_report(url: str):
+def get_time_of_next_report(url = 'https://www.nso.gov.vn/bao-cao-tinh-hinh-kinh-te-xa-hoi-hang-thang/'):
     """
     Lấy thời gian (datetime) dự kiến công bố báo cáo kinh tế - xã hội tiếp theo
     từ bài viết đầu tiên (mới nhất) trên trang danh sách báo cáo NSO.
