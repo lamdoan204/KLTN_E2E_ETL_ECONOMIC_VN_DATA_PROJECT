@@ -38,13 +38,13 @@ def main_func():
 
         print(f'FILE EXCEL: YEAR : {year}, MONTH = {month} ')
 
-        # extract_data_from_GDP(excel_file, year, month)
+        extract_data_from_GDP(excel_file, year, month)
 
-        # extract_data_from_International_Ecommerce(excel_file, year, month)
+        extract_data_from_International_Ecommerce(excel_file, year, month)
 
-        # extract_data_from_Invesment(excel_file, year, month)
+        extract_data_from_Invesment(excel_file, year, month)
 
-        # # extract_data_from_Investment_by_Sector(excel_file, year, month)
+        extract_data_from_Investment_by_Sector(excel_file, year, month)
 
         extract_data_for_Product_Productivity_fact(excel_file, year, month)
         

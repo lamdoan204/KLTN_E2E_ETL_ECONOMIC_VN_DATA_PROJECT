@@ -4,14 +4,51 @@ import unicodedata
 import re
 from minio import Minio
 from reuse_function import *
-
+from datetime import datetime, timezone, timedelta
+VN_TZ = timezone(timedelta(hours=7))
 def get_time_of_next_report(url: str):
-    try:
-        next
-    except Exception as e:
-        print(f'HAVE AN ERROR WHEN GET NEXT TIME OF REPORT !!!!!!!!!! \n {e}')
+    """
+    Lấy thời gian (datetime) dự kiến công bố báo cáo kinh tế - xã hội tiếp theo
+    từ bài viết đầu tiên (mới nhất) trên trang danh sách báo cáo NSO.
 
-    next
+    Trả về:
+        datetime (tzinfo = GMT+7) nếu parse thành công.
+        None nếu không tìm thấy thông tin hoặc có lỗi xảy ra.
+    """
+    try:
+        res = requests.get(url, verify=False, timeout=15)
+        res.raise_for_status()
+    except Exception as e:
+        print(f'HAVE AN ERROR WHEN GET NEXT TIME OF REPORT (REQUEST FAILED) !!!!!!!!!! \n {e}')
+        return None
+
+    try:
+        soup = BeautifulSoup(res.text, 'html.parser')
+        container = soup.find('div', class_='archive-container')
+        if container is None:
+            print('HAVE AN ERROR WHEN GET NEXT TIME OF REPORT: KHÔNG TÌM THẤY archive-container !!!!!!!!!!')
+            return None
+
+        # Bài viết đầu tiên trong container = báo cáo mới nhất
+        next_release_span = container.find('span', class_='archive-next-release')
+        if next_release_span is None:
+            print('HAVE AN ERROR WHEN GET NEXT TIME OF REPORT: KHÔNG TÌM THẤY span archive-next-release !!!!!!!!!!')
+            return None
+
+        # Text dạng: "Lần công bố sắp tới: 03/07/2026"
+        raw_text = next_release_span.get_text(strip=True)
+        if ':' not in raw_text:
+            print(f'HAVE AN ERROR WHEN GET NEXT TIME OF REPORT: FORMAT LẠ -> "{raw_text}" !!!!!!!!!!')
+            return None
+
+        date_str = raw_text.split(':', 1)[1].strip()
+        next_report_date = datetime.strptime(date_str, '%d/%m/%Y').replace(tzinfo=VN_TZ)
+
+        return next_report_date
+
+    except Exception as e:
+        print(f'HAVE AN ERROR WHEN GET NEXT TIME OF REPORT (PARSE FAILED) !!!!!!!!!! \n {e}')
+        return None
 
 
 client = Minio(
@@ -58,6 +95,7 @@ def craw_and_load_report_economic_excel_files_to_bronze():
     links = [] # lưu đường dẫn của các bài viêt 
     
     next_report_time = get_time_of_next_report(base_url)
+    print(F'NEXT REPORT TIME: {next_report_time}')
     # Lấy tên bài báo + link dẫn tới bài báo
     print('Lấy tên bài báo + link dẫn tới bài báo................................')
 
@@ -79,7 +117,7 @@ def craw_and_load_report_economic_excel_files_to_bronze():
         this_page_titles = []
         for x in the_h3:
             t = x.get_text(strip= True)
-            if '2010' in t:
+            if '2024' in t:
                 flag = False
                 break
             this_page_titles.append(t)
@@ -88,7 +126,7 @@ def craw_and_load_report_economic_excel_files_to_bronze():
         this_page_links = []
         for x in the_a:
             t = x['href']
-            if '2010' in t: break
+            if '2024' in t: break
             this_page_links.append(t)
 
         titles += this_page_titles
