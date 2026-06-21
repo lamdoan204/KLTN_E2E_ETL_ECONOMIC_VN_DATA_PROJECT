@@ -56,13 +56,13 @@ tables = [
     # "investment",
     # "international_ecommerce"
     # "forestry",
-    "livestock"
+    # "livestock",
     # "aquatic_products",
     # "industry_product",
     # "investment_by_sector",
     # "annual_crops",
     # "staple_crops",
-    # "perennial_crops"
+    "perennial_crops"
 ]
 
 output_base = "/opt/spark/apps/tmp/silver_csv"

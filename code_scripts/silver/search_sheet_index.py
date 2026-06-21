@@ -86,13 +86,15 @@ def find_sheet_indexes_quarterly(excel_file, all_sheets):
     return san_pham_cong_nghiep_index, lam_nghiep_sheet_index, thuy_san_sheet_index, chan_nuoi_sheet_index
 
 
-def find_sheet_indexes_annual(excel_file, all_sheets):
+def find_sheet_indexes_annual(excel_file, all_sheets, year):
     """Tìm sheet index cho tháng 12 (cây hằng năm, cây lâu năm, cây chủ yếu)."""
     cay_hang_nam_sheet_index    = -1
     cay_lau_nam_sheet_index     = -1
     cay_trong_chu_yeu_sheet_index = -1
-
+    
     for i in range(len(all_sheets)):
+        if year >2022 and year < 2025:
+            i += 1
         current_sheet = pd.read_excel(excel_file, sheet_name=all_sheets[i], header=None)
         col_0 = current_sheet.iloc[::, 0]
         for row in range(len(col_0)):
