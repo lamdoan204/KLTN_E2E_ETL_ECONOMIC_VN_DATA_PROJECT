@@ -71,26 +71,26 @@ with DAG (
     start_date = datetime(2025, 1, 1),
     
 )as dag:
-    # task_1 = BashOperator(
-    #     task_id = 'crawl_and_load_to_bronze_layer',
-    #     bash_command = 'docker exec python_container python bronze/crawl_and_load_report_excel_files_to_bronze.py'
-    # )
-    # task_2 = BashOperator(
-    #     task_id = 'ddl_silver_layer',
-    #     bash_command = 'docker exec spark-master /opt/spark/bin/spark-submit silver/ddl_silver.py'
-    # )
-    # task_3 = BashOperator(
-    #     task_id = 'transform_and_load_data_to_silver',
-    #     bash_command = "docker exec spark-master /opt/spark/bin/spark-submit silver/main.py" 
-    # )
-    # task_4 = BashOperator(
-    #     task_id = 'ddl_gold_layer',
-    #     bash_command = "docker exec spark-master /opt/spark/bin/spark-submit gold/ddl_gold_layer.py" 
-    # )
-    # task_5 = BashOperator(
-    #     task_id = 'load_data_to_gold_layer',
-    #     bash_command = 'docker exec spark-master /opt/spark/bin/spark-submit gold/load_data_to_gold_layer.py' 
-    # )
+    task_1 = BashOperator(
+        task_id = 'crawl_and_load_to_bronze_layer',
+        bash_command = 'docker exec python_container python bronze/crawl_and_load_report_excel_files_to_bronze.py'
+    )
+    task_2 = BashOperator(
+        task_id = 'ddl_silver_layer',
+        bash_command = 'docker exec spark-master /opt/spark/bin/spark-submit silver/ddl_silver.py'
+    )
+    task_3 = BashOperator(
+        task_id = 'transform_and_load_data_to_silver',
+        bash_command = "docker exec spark-master /opt/spark/bin/spark-submit silver/main.py" 
+    )
+    task_4 = BashOperator(
+        task_id = 'ddl_gold_layer',
+        bash_command = "docker exec spark-master /opt/spark/bin/spark-submit gold/ddl_gold_layer.py" 
+    )
+    task_5 = BashOperator(
+        task_id = 'load_data_to_gold_layer',
+        bash_command = 'docker exec spark-master /opt/spark/bin/spark-submit gold/load_data_to_gold_layer.py' 
+    )
     get_time_task = PythonOperator(
         task_id = 'Get_newest_report_time',
         python_callable = get_time_of_next_report
@@ -100,9 +100,11 @@ with DAG (
         trigger_dag_id = 'Newest_Report_Dag',
         conf={'target_time': "{{ ti.xcom_pull(task_ids='Get_newest_report_time') }}"}
     )
-# task_1 >> task_2 >> task_3 >> task_4 >> task_5
 
-get_time_task >> trigger_dag_newest
+task_1 >> get_time_task >> trigger_dag_newest
+task_1 >> task_2 >> task_3 >> task_4 >> task_5
+
+
 
 with DAG(
     dag_id  = "Newest_Report_Dag",
@@ -121,7 +123,20 @@ with DAG(
     )
     task_6 = BashOperator(
         task_id = 'Craw_and_load_newest_report_to_Bronze',
-        bash_command = 'docker exec -it spark-master /opt/spark/bin/spark-submit bronze/'
+        bash_command = 'docker exec python_container python bronze/crawl_and_load_newest_report.py'
+    )
+    task_7 = BashOperator(
+        task_id = 'Processing_newest_data_and_load_to_Silver_layer',
+        bash_command = 'docker exec spark-master /opt/spark/bin/spark-submit silver/main_2.py'
+    )
+    get_time_task = PythonOperator(
+        task_id = 'Get_newest_report_time',
+        python_callable = get_time_of_next_report
+    )
+    trigger_dag_newest = TriggerDagRunOperator(
+        task_id = "trigger_newest_report_dag",
+        trigger_dag_id = 'Newest_Report_Dag',
+        conf={'target_time': "{{ ti.xcom_pull(task_ids='Get_newest_report_time') }}"}
     )
 
-wait_for_report_time >> task_6
+wait_for_report_time >> task_6 >> task_7 >> get_time_task >> trigger_dag_newest

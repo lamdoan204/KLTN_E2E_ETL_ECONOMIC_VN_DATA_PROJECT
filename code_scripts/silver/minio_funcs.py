@@ -76,3 +76,20 @@ def get_list_files(bucket_name, prefix):
 
     except Exception as e:
         print('AN ERROR OCCURED WHEN GET FILE EXCEL PATHS LIST: ', e)
+
+
+def copy_object_in_minio(bucket_name, src_object_name, dst_object_name):
+    """
+    Copy 1 object trong cùng bucket (server-side copy, không tải file về lại).
+    Giữ nguyên file ở src_object_name, tạo thêm bản sao ở dst_object_name.
+    """
+    try:
+        client.copy_object(
+            bucket_name,
+            dst_object_name,
+            CopySource(bucket_name, src_object_name)
+        )
+        print(f'COPY THÀNH CÔNG: {bucket_name}/{src_object_name} -> {bucket_name}/{dst_object_name}')
+    except Exception as e:
+        print(f'HAVE AN ERROR WHEN COPY OBJECT {src_object_name} -> {dst_object_name} !!!!!!!!!!')
+        print(e)
