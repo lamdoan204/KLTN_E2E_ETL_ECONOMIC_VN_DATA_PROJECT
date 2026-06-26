@@ -351,6 +351,7 @@ def insert_df_to_table_silver_layer(df: pd.DataFrame, table_name, year=None, qua
             .option("mergeSchema","true") \
             .saveAsTable(f"silver.{table_name}")
 
+        spark.stop()
         print(
             f"Tải dữ liệu vào table {table_name} hoàn tất !!!!! {year} {quarter}"
         )

@@ -8,10 +8,12 @@ from Load_data_to_table import *
 INVESTMENT_NAME_NORMALIZATION = {
     'Vốn đầu tư thuộc ngân sách NN'                    : 'Vốn đầu tư thuộc ngân sách Nhà nước',
     'Vốn tín dụng đầu tư theo kế hoạch NN'             : 'Vốn tín dụng đầu tư theo kế hoạch Nhà nước',
-    'Vốn vay từ các nguồn khác  (của khu vực Nhà nước)': 'Vốn vay từ các nguồn khác (của khu vực Nhà nước)',
     'Bên Việt Nam'                                      : 'Vốn đầu tư trực tiếp nước ngoài - Bên Việt Nam',
     'Bên nước ngoài'                                    : 'Vốn đầu tư trực tiếp nước ngoài - Bên nước ngoài',
-}
+    'Vốn vay từ các nguồn khác (của khu vực Nhà nước)'  : 'Vốn vay từ các nguồn khác',
+    'Vốn đầu tư của doanh nghiệp Nhà nước (Vốn tự có)'  : 'Vốn đầu tư của doanh nghiệp Nhà nước',
+    
+    }
  
 # Các tên bị loại bỏ vì đã được thay thế bởi các chỉ tiêu con chi tiết hơn
 INVESTMENT_NAME_EXCLUDED = {
@@ -79,6 +81,8 @@ def extract_data_from_Invesment(excel_file: pd.ExcelFile, year, month):
         vdt_sheet = vdt_sheet.dropna(subset=['investment_name', 'value'])
         vdt_sheet = normalize_investment_name(vdt_sheet)
         
+        vdt_sheet['value'] = pd.to_numeric(vdt_sheet['value'], errors='coerce').round(3)
+        vdt_sheet = vdt_sheet.drop_duplicates()
         insert_df_to_table_silver_layer(vdt_sheet, 'investment', year, quarter)
     except Exception as e:
         print(f'CÓ VẤN ĐỀ XẢY RA KHI TRÍCH XUẤT DỮ LIỆU VỐN ĐẦU TƯ TOÀN XÃ HỘI NĂM {year}, THÁNG {month}', e)

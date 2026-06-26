@@ -45,7 +45,7 @@ def main_func():
 
         extract_data_from_International_Ecommerce(excel_file, year, month)
 
-        extract_data_from_Invesment(excel_file, year, month)
+        if year != 2014 and month != 3: extract_data_from_Invesment(excel_file, year, month)
 
         extract_data_from_Investment_by_Sector(excel_file, year, month)
 

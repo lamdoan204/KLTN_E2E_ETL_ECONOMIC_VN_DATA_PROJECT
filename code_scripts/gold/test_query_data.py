@@ -52,24 +52,40 @@ builder = SparkSession.builder \
 spark = builder.getOrCreate()
 
 tables = [
-    # "gdp",
-    # "investment",
-    # "international_ecommerce"
-    # "forestry",
-    # "livestock",
-    # "aquatic_products",
-    # "industry_product",
-    # "investment_by_sector",
-    # "annual_crops",
-    "staple_crops"
-    # "perennial_crops"
+    # "dim_time",
+    # "dim_sector",
+    # "dim_sub_sector",
+    # "dim_product",
+    # "dim_crop",
+    # "dim_capital_source",
+    # "fact_gdp_growth",
+    # "fact_investment_by_sector",
+    # "fact_crop_yield",
+    # "fact_production_output",
+    # "fact_international_trade",
+    # "fact_social_total_investment"
+    
+    "staple_crops",
+    'annual_crops',
+    'perennial_crops',
+    'gdp',
+    'investment',
+    'international_ecommerce',
+    'forestry',
+    'livestock',
+    'aquatic_products',
+    'industry_product',
+    'investment_by_sector'
+    
+    
+    
 ]
 
-output_base = "/opt/spark/apps/tmp/silver_csv"
+output_base = "/opt/spark/apps/tmp/silver_data"
 
 for table_name in tables:
 
-    print(f"Exporting silver.{table_name}")
+    print(f"Exporting gold.{table_name}")
 
     df = spark.sql(f"""
         SELECT *

@@ -125,7 +125,8 @@ def insert_aquatic_products(excel_file, all_sheets, sheet_index: int, year: int,
             thuysan_sheet = result[['aquatic_group', 'product_name', 'value', 'unit']].rename(
                 columns={'aquatic_group': 'aquatic_type'}
             )
-
+        thuysan_sheet['value'] = pd.to_numeric(thuysan_sheet['value'], errors= 'coerce').round(3)
+        
         thuysan_sheet['quarter']   = quarter
         thuysan_sheet['year']      = year
         thuysan_sheet['ingest_at'] = pd.Timestamp.now()
@@ -144,7 +145,9 @@ def insert_aquatic_products(excel_file, all_sheets, sheet_index: int, year: int,
         thuysan_sheet = thuysan_sheet[thuysan_sheet['aquatic_type'].notna()]
         thuysan_sheet = thuysan_sheet[thuysan_sheet['product_name'].notna()]
         thuysan_sheet = thuysan_sheet.dropna()
-
+        
+        thuysan_sheet['value'] = pd.to_numeric(thuysan_sheet['value'], errors= 'coerce').round(3)
+        
         insert_df_to_table_silver_layer(thuysan_sheet, 'aquatic_products', year, quarter)
     except:
         # col_by_quarter: vị trí cột giá trị trong layout "cột 0 = label".
@@ -172,5 +175,7 @@ def insert_aquatic_products(excel_file, all_sheets, sheet_index: int, year: int,
         thuysan_sheet = thuysan_sheet[thuysan_sheet['aquatic_type'].notna()]
         thuysan_sheet = thuysan_sheet[thuysan_sheet['product_name'].notna()]
         thuysan_sheet = thuysan_sheet.dropna()
+
+        thuysan_sheet['value'] = pd.to_numeric(thuysan_sheet['value'], errors= 'coerce').round(3)
 
         insert_df_to_table_silver_layer(thuysan_sheet, 'aquatic_products', year, quarter)

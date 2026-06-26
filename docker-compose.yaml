@@ -34,10 +34,8 @@ x-airflow-common:
     AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
-    - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
     - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
-    - ${AIRFLOW_PROJ_DIR:-.}/tasks:/opt/airflow/tasks
     - ${AIRFLOW_PROJ_DIR:-.}/code_scripts:/opt/airflow/code_scripts
     - /var/run/docker.sock:/var/run/docker.sock
 
@@ -366,11 +364,11 @@ services:
       - ./code_scripts:/opt/spark/apps
     restart: always
     stdin_open: true
-    command: /bin/bash
+    command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.master.Master", "--host", "spark-master", "--port", "7077", "--webui-port", "8080"]
 
   spark-worker:
     # build: ./spark
-    image: kltn_e2e_etl_economic_vn_data_project-spark-master:latest
+    image: kltn_e2e_etl_economic_vn_data_project-spark-master
     container_name: spark-worker
     environment:
       - SPARK_MODE=worker
@@ -379,10 +377,8 @@ services:
     depends_on:
       - spark-master            
     restart: always
-    volumes:
-      - ./spark/spark_apps:/opt/spark/apps
     stdin_open: true
-    command: /bin/bash
+    command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.worker.Worker", "spark://spark-master:7077"]
   python:
     build: ./python
     container_name: python_container
@@ -392,6 +388,30 @@ services:
       - ./code_scripts:/app
 
     command: tail -f /dev/null
+
+  streamlit:
+    build: ./streamlit
+    container_name: streamlit_dashboard
+    ports:
+      - "8501:8501"
+    environment:
+      SPARK_MASTER_URL: spark://spark-master:7077
+      HIVE_METASTORE_URI: thrift://hive:9083
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      SPARK_EXECUTOR_MEMORY: 2g
+      SPARK_EXECUTOR_CORES: "1"
+    volumes:
+      # Mount code dạng volume để sửa app.py không cần build lại image (dev mode).
+      # Khi deploy thật, có thể bỏ dòng này và để code "đóng cứng" trong image.
+      - ./streamlit/app.py:/opt/streamlit/app/app.py
+    depends_on:
+      - spark-master
+      - hive
+      - minio
+    restart: always
+
     
     
 volumes:

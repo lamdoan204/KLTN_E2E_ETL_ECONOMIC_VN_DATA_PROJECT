@@ -81,6 +81,8 @@ def insert_forestry(excel_file, all_sheets, sheet_index: int, year: int, quarter
     # --- LÀM TRÒN VÀ LỌC DỮ LIỆU SỐ ---
     lamnghiep_sheet['value'] = pd.to_numeric(lamnghiep_sheet['value'], errors='coerce').round(3)
     lamnghiep_sheet = lamnghiep_sheet.dropna(subset=['value'])
+    
+    lamnghiep_sheet = lamnghiep_sheet.drop_duplicates()
 
     # Đẩy vào Silver Layer
     insert_df_to_table_silver_layer(lamnghiep_sheet, 'forestry', year, quarter)

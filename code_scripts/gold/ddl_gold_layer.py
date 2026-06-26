@@ -1,54 +1,27 @@
 from pyspark.sql import SparkSession
 
-builder = SparkSession.builder \
-    .appName("Delta-MinIO-Gold") \
-    .config(
-        "spark.sql.extensions",
-        "io.delta.sql.DeltaSparkSessionExtension"
-    ) \
-    .config(
-        "spark.sql.catalog.spark_catalog",
-        "org.apache.spark.sql.delta.catalog.DeltaCatalog"
-    ) \
-    .config(
-        "spark.sql.catalogImplementation",
-        "hive"
-    ) \
-    .config(
-        "hive.metastore.uris",
-        "thrift://hive:9083"
-    ) \
-    .config(
-        "spark.sql.warehouse.dir",
-        "/tmp/spark-warehouse"
-    ) \
-    .config(
-        "spark.hadoop.fs.s3a.endpoint",
-        "http://minio:9000"
-    ) \
-    .config(
-        "spark.hadoop.fs.s3a.access.key",
-        "minioadmin"
-    ) \
-    .config(
-        "spark.hadoop.fs.s3a.secret.key",
-        "minioadmin"
-    ) \
-    .config(
-        "spark.hadoop.fs.s3a.path.style.access",
-        "true"
-    ) \
-    .config(
-        "spark.hadoop.fs.s3a.connection.ssl.enabled",
-        "false"
-    ) \
-    .config(
-        "spark.hadoop.fs.s3a.impl",
-        "org.apache.hadoop.fs.s3a.S3AFileSystem"
-    ) \
-    .enableHiveSupport()
+def get_spark() -> SparkSession:
+    spark = (
+        SparkSession.builder
+        .appName("Delta-MinIO-Gold")
+        .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
+        .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
+        .config("spark.sql.delta.logStore.s3a.class", "org.apache.spark.sql.delta.storage.S3AStorageLogStore")
+        .config("spark.sql.catalogImplementation", "hive")
+        .config("hive.metastore.uris", "thrift://hive:9083")
+        .config("spark.sql.warehouse.dir", "/tmp/spark-warehouse")
+        .config("spark.hadoop.fs.s3a.endpoint", "http://minio:9000")
+        .config("spark.hadoop.fs.s3a.access.key", "minioadmin")
+        .config("spark.hadoop.fs.s3a.secret.key", "minioadmin")
+        .config("spark.hadoop.fs.s3a.path.style.access", "true")
+        .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false")
+        .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
+        .enableHiveSupport()
+        .getOrCreate()
+    )
+    return spark
 
-spark = builder.getOrCreate()
+spark = get_spark()
 
 spark.sql("CREATE DATABASE IF NOT EXISTS gold")
 
@@ -93,11 +66,10 @@ LOCATION 's3a://gold/dim_sub_sector'
 spark.sql("DROP TABLE IF EXISTS gold.dim_product;")
 spark.sql("""
 CREATE TABLE gold.dim_product (
-    product_key      INT,
+    product_key      INT ,
     product_name     STRING,
     product_type     STRING,
-    product_category STRING,
-    source_table     STRING
+    product_category STRING
 )
 USING DELTA
 LOCATION 's3a://gold/dim_product'
@@ -108,7 +80,6 @@ spark.sql("""
 CREATE TABLE gold.dim_crop (
     crop_key      INT,
     crop_name     STRING,
-    crop_type     STRING,
     crop_category STRING
 )
 USING DELTA
@@ -175,6 +146,7 @@ spark.sql("""
 CREATE TABLE gold.fact_crop_yield (
     time_key                INT,
     crop_key                INT,
+    production_unit         STRING,
     yield_unit              STRING,
     area_unit               STRING,
     area                    FLOAT,
@@ -183,8 +155,8 @@ CREATE TABLE gold.fact_crop_yield (
     area_pre_year           FLOAT,
     yield_pre_year          FLOAT,
     productivity_pre_year   FLOAT,
-    value_yoy_growth_rate   FLOAT,
-    productivity_growth_rate FLOAT
+    yield_yoy_growth_rate   FLOAT,
+    yield_share_pct         FLOAT
 )
 USING DELTA
 LOCATION 's3a://gold/fact_crop_yield'
@@ -196,13 +168,11 @@ CREATE TABLE gold.fact_production_output (
     time_key            INT,
     product_key         INT,
     value               FLOAT,
+    unit                STRING,
     prev_quarter_value  FLOAT,
     pre_year_value      FLOAT,
     yoy_growth_rate     FLOAT,
     qoq_growth_rate     FLOAT,
-    unit                STRING,
-    quantity            INT,
-    quantity_unit       STRING,
     product_share_pct   FLOAT
 )
 USING DELTA

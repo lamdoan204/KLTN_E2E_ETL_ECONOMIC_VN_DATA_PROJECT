@@ -80,8 +80,8 @@ def insert_livestock(excel_file, all_sheets, sheet_index: int, year: int, quarte
     channuoi_sheet.loc[channuoi_sheet['livestock_indicator'] == 'Sữa', 'unit'] = 'Triệu lít'
     channuoi_sheet.loc[channuoi_sheet['livestock_indicator'] == 'Trứng', 'unit'] = 'Triệu quả'
     
+    channuoi_sheet = channuoi_sheet.drop_duplicates()
     # Gán đơn vị 'Nghìn tấn' cho TẤT CẢ các loại còn lại (không phải Sữa và Trứng)
     channuoi_sheet.loc[~channuoi_sheet['livestock_indicator'].isin(['Sữa', 'Trứng']), 'unit'] = 'Nghìn tấn'
-    
     # Gọi hàm để load lên bảng
     insert_df_to_table_silver_layer(channuoi_sheet, 'livestock', year, quarter)

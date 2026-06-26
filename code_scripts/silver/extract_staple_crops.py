@@ -109,11 +109,17 @@ def insert_staple_crops(excel_file, all_sheets, sheet_index: int, year: int, qua
 
     merged_df = pd.concat(
         [
-            parse_crop_table(cocu_df,  'cây có củ'),
-            parse_crop_table(cohat_df, 'cây có hạt'),
+            parse_crop_table(cocu_df,  'Cây có củ'),
+            parse_crop_table(cohat_df, 'Cây có hạt'),
         ],
         ignore_index=True,
     )
+    merged_df['production'] = merged_df['production'].round(3)
+    merged_df['yield'] = merged_df['yield'].round(3)
+    merged_df['area'] = merged_df['area'].round(3)
+    
+    merged_df = merged_df.drop_duplicates()
+
     merged_df['year']      = year
     merged_df['ingest_at'] = pd.Timestamp.now()
     insert_df_to_table_silver_layer(merged_df, 'staple_crops', year, quarter)

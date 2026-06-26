@@ -21,14 +21,24 @@ def insert_annual_crops(excel_file, all_sheets, sheet_index: int, year: int, qua
     column_name = ['product', 'value']
     cayhangnam_sheet.columns = column_name
 
-    # Chuẩn hóa nhãn chỉ tiêu: bỏ khoảng trắng đầu/cuối và phần đơn vị trong "(...)"
-    # để so khớp chính xác với metrics_map (vd "    Diện tích (Nghìn ha)" -> "Diện tích")
+    # 1. Chuẩn hóa nhãn chỉ tiêu: bỏ khoảng trắng đầu/cuối và phần đơn vị trong "(...)"
     metric_label = cayhangnam_sheet['product'].str.strip().str.replace(r"\s*\(.*?\)", "", regex=True)
 
-    # Tách tên cây và chỉ tiêu
-    cayhangnam_sheet['crop_name'] = cayhangnam_sheet['product'].where(
+    # 2. Tách tên cây thô ban đầu (chưa điền khuyết ffill)
+    cayhangnam_sheet['crop_name_raw'] = cayhangnam_sheet['product'].where(
         ~metric_label.isin(['Diện tích', 'Năng suất', 'Sản lượng'])
-    ).ffill()
+    ).str.strip()
+
+    # ==================== ĐOẠN ĐỔI TÊN & GỘP CÂY THUỐC ====================
+    # Gộp cả "Thuốc lá" và "Thuốc lá, thuốc lào" (sau khi đã strip khoảng trắng) thành "Cây thuốc"
+    cayhangnam_sheet['crop_name_raw'] = cayhangnam_sheet['crop_name_raw'].replace(
+        ['Thuốc lá', 'Thuốc lá, thuốc lào'], 
+        'Cây thuốc'
+    )
+    # =====================================================================
+
+    # 3. Tiến hành ffill tên cây đã được chuẩn hóa xuống các dòng chỉ tiêu bên dưới
+    cayhangnam_sheet['crop_name'] = cayhangnam_sheet['crop_name_raw'].ffill()
     cayhangnam_sheet['unit'] = cayhangnam_sheet['product'].str.extract(r"\((.*?)\)").fillna(' ')
 
     metrics_map = {
@@ -37,7 +47,7 @@ def insert_annual_crops(excel_file, all_sheets, sheet_index: int, year: int, qua
         'Sản lượng': 'production',
     }
 
-    # xác định dòng crop
+    # xác định dòng crop (sử dụng crop_name đã được chuẩn hóa và gộp)
     cayhangnam_sheet['crop_group'] = np.where(
         ~metric_label.isin(metrics_map.keys()),
         cayhangnam_sheet['crop_name'],
@@ -62,7 +72,10 @@ def insert_annual_crops(excel_file, all_sheets, sheet_index: int, year: int, qua
         'production':      values_pivot['production'],
         'production_unit': unit_pivot['production'],
     }).reset_index(drop=True)
-
+    
+    for col in ['area', 'yield', 'production']:
+        result[col] = pd.to_numeric(result[col], errors='coerce').round(3)
+    result = result.drop_duplicates()
     result['year']      = year
     result['ingest_at'] = pd.Timestamp.now()
     insert_df_to_table_silver_layer(result, 'annual_crops', year, quarter)

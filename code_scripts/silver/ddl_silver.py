@@ -199,7 +199,6 @@ CREATE TABLE silver.staple_crops (
     crop_name STRING,
     production DOUBLE,
     production_unit STRING,
-    type STRING,
     yield DOUBLE,
     yield_unit STRING,
     area DOUBLE,
