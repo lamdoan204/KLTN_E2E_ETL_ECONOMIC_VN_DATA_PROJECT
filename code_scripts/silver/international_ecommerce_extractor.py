@@ -1,22 +1,44 @@
 import pandas as pd
 
+import re
+import unicodedata
+
+
 from minio_funcs import *
 from reuse_function import *
 from Load_data_to_table import *
 
 # HÀM MỚI: CHUẨN HÓA VÀ MAPPING PRODUCT_NAME THEO YÊU CẦU
+NGUYEN_CHIEC_PATTERN = re.compile(
+    r'^(trong\s*đó|tđ)\s*:\s*nguyên\s*chiếc\s*[\(⁽]?\*{0,3}[\)⁾]?$',
+    flags=re.IGNORECASE,
+)
+ 
+ 
 def clean_and_mapping_products(df: pd.DataFrame) -> pd.DataFrame:
     if df is None or df.empty:
         return df
-
-    # 1. Strip toàn bộ whitespace đầu/cuối TRƯỚC mọi thao tác
-    df['product_name'] = df['product_name'].astype(str).str.strip()
-
+ 
+    # 1. Chuẩn hóa Unicode (NFC) + strip đầu/cuối + gộp khoảng trắng kép bên trong
+    #    TRƯỚC mọi thao tác. Đây là bước quan trọng để các biến thể trông
+    #    "giống nhau" trên màn hình nhưng khác byte Unicode (ví dụ dấu ngoặc
+    #    superscript, khoảng trắng kép) đều được đưa về cùng một dạng chuẩn.
+    df['product_name'] = (
+        df['product_name']
+        .astype(str)
+        .map(lambda s: unicodedata.normalize('NFC', s))
+        .str.strip()
+        .str.replace(r'\s+', ' ', regex=True)
+    )
+ 
     # 2. Xóa các hàng không hợp lệ
+    #    - so sánh value bằng pd.to_numeric để không lọt các biến thể
+    #      '-1' (string), -1.0 (float) nếu cột value bị lẫn kiểu dữ liệu.
     df = df[~df['product_name'].isin(['-1', 'Tđ: Nguyên chiếc'])]
-    df = df[~df['value'].isin([-1])]
-
-    # 3. Mapping tên sản phẩm chung (đã strip nên không lo khoảng trắng thừa)
+    df = df[~pd.to_numeric(df['value'], errors='coerce').isin([-1])]
+ 
+    # 3. Mapping tên sản phẩm chung (đã strip + gộp space nên không lo
+    #    khoảng trắng thừa)
     product_mapping = {
         'Đá quý, KL quý  và sản phẩm': 'Đá quý, kim loại quý và sản phẩm',
         'Điện thoại các loại và LK': 'Điện thoại các loại và linh kiện',
@@ -57,22 +79,15 @@ def clean_and_mapping_products(df: pd.DataFrame) -> pd.DataFrame:
         'Sữa và sản phẩm sữa': 'Sữa và sản phẩm từ sữa',
     }
     df['product_name'] = df['product_name'].replace(product_mapping)
-
-    # 4. Gom TẤT CẢ variant "nguyên chiếc" → 'Ô tô nguyên chiếc' TRƯỚC
-    #    (đã strip nên không cần lo khoảng trắng đầu dòng nữa)
-    nguyen_chiec_variants = {
-        'Trong đó: Nguyên chiếc': 'Ô tô nguyên chiếc',
-        'Trong đó: Nguyên chiếc(*)': 'Ô tô nguyên chiếc',
-        'Trong đó: Nguyên chiếc⁽*⁾': 'Ô tô nguyên chiếc',
-        'Trong đó: Nguyên chiếc(**)': 'Ô tô nguyên chiếc',
-        'Tđ: Nguyên chiếc': 'Ô tô nguyên chiếc',   # trường hợp chưa bị lọc ở bước 2
-    }
-    df['product_name'] = df['product_name'].replace(nguyen_chiec_variants)
-
+ 
+    is_nguyen_chiec = df['product_name'].str.match(NGUYEN_CHIEC_PATTERN, na=False)
+    df.loc[is_nguyen_chiec, 'product_name'] = 'Ô tô nguyên chiếc'
+ 
     # 5. Sau khi đã chuẩn hóa tên, mới cập nhật quantity_unit cho ô tô nguyên chiếc
     df.loc[df['product_name'] == 'Ô tô nguyên chiếc', 'quantity_unit'] = 'Chiếc'
-
+ 
     return df.reset_index(drop=True)
+
 
 # TRÍCH XUẤT DỮ LIỆU THƯƠNG MẠI QUỐC TẾ
 def extract_intenational_ecommerce_data_sheet_02(sheet : pd.DataFrame, type : str, month: int, year : int):

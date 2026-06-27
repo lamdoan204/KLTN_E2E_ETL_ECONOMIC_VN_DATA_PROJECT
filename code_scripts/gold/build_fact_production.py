@@ -189,7 +189,7 @@ def build_fact_production_output():
         )
     )
     
-    w_year = Window.partitionBy("year", "product_key")
+    w_year = Window.partitionBy("year" 'quarter')
 
     result = (
         result
@@ -243,14 +243,8 @@ def build_fact_production_output():
             .mode('overwrite')\
                 .save('s3a://gold/fact_production_output')
     result.show(100)
-    del result
-    del industry_product
-    del livestock
-    del aquatic
-    del forestry
-    del cur
-    del pre_q
-    del pre_y
+    
+
     
 def main_build_fact_production_output():
     build_fact_production_output()

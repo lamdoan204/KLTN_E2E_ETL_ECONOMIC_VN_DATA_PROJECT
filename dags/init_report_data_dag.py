@@ -75,14 +75,14 @@ with DAG (
     #     task_id = 'crawl_and_load_to_bronze_layer',
     #     bash_command = 'docker exec python_container python bronze/crawl_and_load_report_excel_files_to_bronze.py'
     # )
-    task_2 = BashOperator(
-        task_id = 'ddl_silver_layer',
-        bash_command = 'docker exec spark-master /opt/spark/bin/spark-submit silver/ddl_silver.py'
-    )
-    task_3 = BashOperator(
-        task_id = 'transform_and_load_data_to_silver',
-        bash_command = "docker exec spark-master /opt/spark/bin/spark-submit silver/main.py" 
-    )
+    # task_2 = BashOperator(
+    #     task_id = 'ddl_silver_layer',
+    #     bash_command = 'docker exec spark-master /opt/spark/bin/spark-submit silver/ddl_silver.py'
+    # )
+    # task_3 = BashOperator(
+    #     task_id = 'transform_and_load_data_to_silver',
+    #     bash_command = "docker exec spark-master /opt/spark/bin/spark-submit silver/main.py" 
+    # )
     task_4 = BashOperator(
         task_id = 'ddl_gold_layer',
         bash_command = "docker exec spark-master /opt/spark/bin/spark-submit gold/ddl_gold_layer.py" 
@@ -102,8 +102,8 @@ with DAG (
     # )
 
 # task_1 >> get_time_task >> trigger_dag_newest
-task_2 >> task_3 >> task_4 >> task_5
-# task_4 >> task_5
+# task_2 >> task_3 >> task_4 >> task_5
+task_4 >> task_5
 
 
 with DAG(

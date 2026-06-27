@@ -53,6 +53,9 @@ def build_fact_crop():
             (col("t.quarter").isNull()) &
             (col("t.day").isNull()),
             "left"
+        ).select(
+            col('c.*'),
+            col('t.time_key')
         )
     )
     crop = (
@@ -61,12 +64,16 @@ def build_fact_crop():
             dim_crop.alias("t"),
             (col('c.crop_name') == col('t.crop_name')),
             "left"
+        ).select(
+            col('c.*'),
+            col('t.crop_key')
         )
     )
     del dim_crop
     del dim_time
-    cur = result.alias("c")
-    pre = result.alias("p")
+    
+    cur = crop.alias("c")
+    pre = crop.alias("p")
 
     result = (
         cur.join(
@@ -80,7 +87,7 @@ def build_fact_crop():
 
             col("p.area").alias("area_pre_year"),
             col("p.yield").alias("yield_pre_year"),
-            col("p.productivity").alias("productivity_pre_year")
+            col("p.production").alias("productivity_pre_year")
         )
     )
     del cur
@@ -125,7 +132,7 @@ def build_fact_crop():
 
             col("area").cast("float").alias("area"),
             col("yield").cast("float").alias("yield_value"),
-            col("productivity").cast("float").alias("productivity"),
+            col("production").cast("float").alias("productivity"),
 
             col("area_pre_year").cast("float").alias("area_pre_year"),
             col("yield_pre_year").cast("float").alias("yield_pre_year"),
@@ -147,4 +154,3 @@ def build_fact_crop():
         
 def main_build_fact_crop():
     build_fact_crop()
-    spark.stop()
