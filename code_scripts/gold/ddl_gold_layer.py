@@ -184,7 +184,6 @@ spark.sql("""
 CREATE TABLE gold.fact_international_trade (
     time_key                INT,
     product_key             INT,
-    trade_type              STRING,
     trade_value             FLOAT,
     value_unit              STRING,
     quantity                FLOAT,

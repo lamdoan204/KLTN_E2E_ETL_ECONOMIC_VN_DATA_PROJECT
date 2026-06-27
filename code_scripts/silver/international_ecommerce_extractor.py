@@ -9,15 +9,14 @@ def clean_and_mapping_products(df: pd.DataFrame) -> pd.DataFrame:
     if df is None or df.empty:
         return df
 
-    # 1. Xóa các khoảng trắng thừa ở đầu/cuối của product_name để đảm bảo mapping chính xác
+    # 1. Strip toàn bộ whitespace đầu/cuối TRƯỚC mọi thao tác
     df['product_name'] = df['product_name'].astype(str).str.strip()
 
-
-    # 2. Xóa các hàng có product_name = '-1' hoặc 'Tđ: Nguyên chiếc'
+    # 2. Xóa các hàng không hợp lệ
     df = df[~df['product_name'].isin(['-1', 'Tđ: Nguyên chiếc'])]
     df = df[~df['value'].isin([-1])]
 
-    # 3. Tạo dictionary mapping cho các tên sản phẩm (Không bao gồm ô tô nguyên chiếc cần xử lý riêng)
+    # 3. Mapping tên sản phẩm chung (đã strip nên không lo khoảng trắng thừa)
     product_mapping = {
         'Đá quý, KL quý  và sản phẩm': 'Đá quý, kim loại quý và sản phẩm',
         'Điện thoại các loại và LK': 'Điện thoại các loại và linh kiện',
@@ -32,12 +31,12 @@ def clean_and_mapping_products(df: pd.DataFrame) -> pd.DataFrame:
         'Kim loại thường khác và sản phẩm': 'Kim loại thường và sản phẩm',
         'Kim loại thường khác và SP': 'Kim loại thường và sản phẩm',
         'Máy ảnh, máy quay phim và LK': 'Máy ảnh, máy quay phim và linh kiện',
-        'Máy móc, thiết bị, DC, PT khác' : 'Máy móc, thiết bị, dụng cụ, phụ tùng',
-        'Máy móc, thiết bị, dụng cụ PT khác' : 'Máy móc, thiết bị, dụng cụ, phụ tùng',
+        'Máy móc, thiết bị, DC, PT khác': 'Máy móc, thiết bị, dụng cụ, phụ tùng',
+        'Máy móc, thiết bị, dụng cụ PT khác': 'Máy móc, thiết bị, dụng cụ, phụ tùng',
         'Máy móc thiết bị, dụng cụ phụ tùng khác': 'Máy móc, thiết bị, dụng cụ, phụ tùng',
         'Máy móc thiết bị, DC, PT khác': 'Máy móc, thiết bị, dụng cụ, phụ tùng',
-        'Máy móc thiết bị, DC PT khác' : 'Máy móc, thiết bị, dụng cụ, phụ tùng',
-        'Máy móc thiết bị, DC PT' : 'Máy móc, thiết bị, dụng cụ, phụ tùng',
+        'Máy móc thiết bị, DC PT khác': 'Máy móc, thiết bị, dụng cụ, phụ tùng',
+        'Máy móc thiết bị, DC PT': 'Máy móc, thiết bị, dụng cụ, phụ tùng',
         'Máy móc thiết bị, dụng cụ PT': 'Máy móc, thiết bị, dụng cụ, phụ tùng',
         'Máy móc thiết bị, dụng cụ PT khác': 'Máy móc, thiết bị, dụng cụ, phụ tùng',
         'Máy móc, thiết bị, dụng cụ, phụ tùng khác': 'Máy móc, thiết bị, dụng cụ, phụ tùng',
@@ -52,33 +51,28 @@ def clean_and_mapping_products(df: pd.DataFrame) -> pd.DataFrame:
         'SP nội thất từ chất liệu khác gỗ': 'Sản phẩm nội thất từ chất liệu khác gỗ',
         'SP từ kim loại thường khác': 'Sản phẩm từ kim loại thường khác',
         'Thủy tinh và các SP từ thủy tinh': 'Thủy tinh và các sản phẩm từ thủy tinh',
-        'Thủy tinh và cácSP từ thủy tinh' : 'Thủy tinh và các sản phẩm từ thủy tinh',
+        'Thủy tinh và cácSP từ thủy tinh': 'Thủy tinh và các sản phẩm từ thủy tinh',
         'Thức ăn gia súc và NPL': 'Thức ăn gia súc và nguyên phụ liệu',
         'Xe máy(*)': 'Xe máy',
-        'Sữa và sản phẩm sữa' : 'Sữa và sản phẩm từ sữa',
+        'Sữa và sản phẩm sữa': 'Sữa và sản phẩm từ sữa',
     }
-
-    # Apply mapping chuẩn hóa tên sản phẩm chung
     df['product_name'] = df['product_name'].replace(product_mapping)
 
-    # 4. Xử lý các trường hợp "Ô tô nguyên chiếc" và chuyển quantity_unit sang 'Chiếc'
-    target_cars = ['Ô tô nguyên chiếc', 'Trong đó: Nguyên chiếc', 'Trong đó: Nguyên chiếc⁽*⁾', 'Trong đó: Nguyên chiếc(*)']
-    
-    # Cập nhật quantity_unit thành 'Chiếc' cho các dòng thỏa mãn điều kiện ô tô nguyên chiếc
-    df.loc[df['product_name'].isin(target_cars), 'quantity_unit'] = 'Chiếc'
-    # Đồng bộ tất cả các dòng này về một tên duy nhất: 'Ô tô nguyên chiếc'
-    df['product_name'] = df['product_name'].replace({
+    # 4. Gom TẤT CẢ variant "nguyên chiếc" → 'Ô tô nguyên chiếc' TRƯỚC
+    #    (đã strip nên không cần lo khoảng trắng đầu dòng nữa)
+    nguyen_chiec_variants = {
         'Trong đó: Nguyên chiếc': 'Ô tô nguyên chiếc',
-        ' Trong đó: Nguyên chiếc' : 'Ô tô nguyên chiếc',
-        ' Trong đó: Nguyên chiếc⁽*⁾':'Ô tô nguyên chiếc',
-        ' Tđ: Nguyên chiếc' : 'Ô tô nguyên chiếc',
-        ' Trong đó: Nguyên chiếc': 'Ô tô nguyên chiếc',
-        'Trong đó: Nguyên chiếc⁽*⁾': 'Ô tô nguyên chiếc',
         'Trong đó: Nguyên chiếc(*)': 'Ô tô nguyên chiếc',
-        'Trong đó: Nguyên chiếc(**)' : 'Ô tô nguyên chiếc',
-    })
-    return df.reset_index(drop=True)
+        'Trong đó: Nguyên chiếc⁽*⁾': 'Ô tô nguyên chiếc',
+        'Trong đó: Nguyên chiếc(**)': 'Ô tô nguyên chiếc',
+        'Tđ: Nguyên chiếc': 'Ô tô nguyên chiếc',   # trường hợp chưa bị lọc ở bước 2
+    }
+    df['product_name'] = df['product_name'].replace(nguyen_chiec_variants)
 
+    # 5. Sau khi đã chuẩn hóa tên, mới cập nhật quantity_unit cho ô tô nguyên chiếc
+    df.loc[df['product_name'] == 'Ô tô nguyên chiếc', 'quantity_unit'] = 'Chiếc'
+
+    return df.reset_index(drop=True)
 
 # TRÍCH XUẤT DỮ LIỆU THƯƠNG MẠI QUỐC TẾ
 def extract_intenational_ecommerce_data_sheet_02(sheet : pd.DataFrame, type : str, month: int, year : int):
