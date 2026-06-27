@@ -1,4 +1,4 @@
-import pyspark.pandas as pd
+import pandas as pd
 import gc
 
 from minio_funcs import *
@@ -59,7 +59,6 @@ def main_func():
         
         # Giải phóng bộ nhớ RAM của file hiện tại trước khi xử lý file tiếp theo
         del excel_file
-        spark.catalog.clearCache()
         gc.collect()
         
     print(f"Tải thành công dữ liệu từ file: tháng: {month} - năm: {year} lên SILVER LAYER")

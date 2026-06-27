@@ -1,4 +1,4 @@
-import pyspark.pandas as pd
+import pandas as pd
 from Load_data_to_table import *
 
 # Giả định bạn đã import hàm này

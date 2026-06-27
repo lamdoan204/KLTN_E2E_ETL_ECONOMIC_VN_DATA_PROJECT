@@ -249,4 +249,3 @@ def build_fact_gdp_growth():
     
 def main_build_fact_gdp():
     build_fact_gdp_growth()
-    spark.stop()

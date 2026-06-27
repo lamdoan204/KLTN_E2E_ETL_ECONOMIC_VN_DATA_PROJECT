@@ -254,4 +254,3 @@ def build_fact_production_output():
     
 def main_build_fact_production_output():
     build_fact_production_output()
-    spark.stop()

@@ -190,4 +190,3 @@ def main_build_fact_trade_international():
     print("BẮT ĐẦU LOAD DATA VÀO FACT TRADE INTERNATIONAL =======================")
     build_fact_trade_international()
     print("LOAD DATA VÀO FACT TRADE INTERNATIONAL HOÀN THÀNH =======================")
-    spark.stop()

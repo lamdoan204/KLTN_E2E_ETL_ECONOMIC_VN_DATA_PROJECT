@@ -1,5 +1,5 @@
 import re
-import pyspark.pandas as pd
+import pandas as pd
 import traceback
 
 from Load_data_to_table import *

@@ -9,48 +9,58 @@ builder = SparkSession.builder \
     .config(
         "spark.sql.extensions",
         "io.delta.sql.DeltaSparkSessionExtension"
-    ) \
-    .config(
+    ).config(
         "spark.sql.catalog.spark_catalog",
         "org.apache.spark.sql.delta.catalog.DeltaCatalog"
-    ) \
-    .config(
+    ).config(
         "spark.sql.catalogImplementation",
         "hive"
-    ) \
-    .config(
+    ).config(
         "hive.metastore.uris",
         "thrift://hive:9083"
-    ) \
-    .config(
+    ).config(
         "spark.sql.warehouse.dir",
         "s3a://warehouse/"
-    ) \
-    .config(
+    ).config(
         "spark.hadoop.fs.s3a.endpoint",
         "http://minio:9000"
-    ) \
-    .config(
+    ).config(
         "spark.hadoop.fs.s3a.access.key",
         "minioadmin"
-    ) \
-    .config(
+    ).config(
         "spark.hadoop.fs.s3a.secret.key",
         "minioadmin"
-    ) \
-    .config(
+    ).config(
         "spark.hadoop.fs.s3a.path.style.access",
         "true"
-    ) \
-    .config(
+    ).config(
         "spark.hadoop.fs.s3a.connection.ssl.enabled",
         "false"
-    ) \
-    .config(
+    ).config(
         "spark.hadoop.fs.s3a.impl",
         "org.apache.hadoop.fs.s3a.S3AFileSystem"
-    ) \
-    .enableHiveSupport()
+    ).config(
+        "spark.driver.memory",
+        "2g"
+    ).config(
+        "spark.driver.maxResultSize",
+        "1g"
+    ).config(
+        "spark.sql.shuffle.partitions",
+        "4"
+    ).config(
+        "spark.default.parallelism",
+        "4"
+    ).config(
+        "spark.sql.adaptive.enabled",
+        "true"
+    ).config(
+        "spark.sql.adaptive.coalescePartitions.enabled",
+        "true"
+    ).config(
+        "spark.ui.showConsoleProgress",
+        "false"
+    ).enableHiveSupport()
 
 
 spark = builder.getOrCreate()

@@ -178,5 +178,4 @@ def main_build_fact_total_investment():
     print("BẮT ĐẦU LOAD DỮ LIỆU VÀO FACT TOTAL INVESTMENT")
     build_fact_investment()
     print("LOAD DỮ LIỆU FACT TOTAL INVESTMENT HOÀN THÀNH")
-
     spark.stop()

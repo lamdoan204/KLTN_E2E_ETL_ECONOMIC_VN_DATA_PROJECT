@@ -1,4 +1,4 @@
-import pyspark.pandas as pd
+import pandas as pd
 
 from minio_funcs import *
 from reuse_function import *

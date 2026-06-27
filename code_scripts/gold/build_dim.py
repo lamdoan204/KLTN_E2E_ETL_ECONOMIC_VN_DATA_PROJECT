@@ -379,7 +379,6 @@ def main_build_dim():
     print('loading dim-capital_source')
     build_dim_capital_source()
     
-    spark.stop()
     
     
 
