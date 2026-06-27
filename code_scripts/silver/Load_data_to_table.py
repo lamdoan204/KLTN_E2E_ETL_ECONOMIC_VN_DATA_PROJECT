@@ -105,7 +105,12 @@ def dropna_spark_df(spark_df, key_cols):
 def insert_df_to_table_silver_layer(df: pd.DataFrame, table_name, year=None, quarter=None):
 
     print('Bắt đầu insert dữ liệu vào SILVER layer')
-   
+    if df is None or df.empty:
+        print(
+            f'BỎ QUA insert vào {table_name} - {year} {quarter}: '
+            f'DataFrame đầu vào rỗng hoặc None'
+        )
+        return
     try:
         for c in df.columns:
 
@@ -351,7 +356,6 @@ def insert_df_to_table_silver_layer(df: pd.DataFrame, table_name, year=None, qua
             .option("mergeSchema","true") \
             .saveAsTable(f"silver.{table_name}")
 
-        spark.stop()
         print(
             f"Tải dữ liệu vào table {table_name} hoàn tất !!!!! {year} {quarter}"
         )
