@@ -405,7 +405,7 @@ services:
     volumes:
       # Mount code dạng volume để sửa app.py không cần build lại image (dev mode).
       # Khi deploy thật, có thể bỏ dòng này và để code "đóng cứng" trong image.
-      - ./streamlit/app.py:/opt/streamlit/app/app.py
+      - ./streamlit:/opt/streamlit/app
     depends_on:
       - spark-master
       - hive

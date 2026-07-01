@@ -26,7 +26,10 @@ RUN pip3 install --no-cache-dir -r /tmp/requirements.txt
 RUN mkdir -p /opt/streamlit/app
 WORKDIR /opt/streamlit/app
 
+COPY shared/ /opt/streamlit/app/shared/
+
 COPY app.py /opt/streamlit/app/app.py
+
 COPY docker-entrypoint.sh /opt/streamlit/app/docker-entrypoint.sh
 RUN chmod +x /opt/streamlit/app/docker-entrypoint.sh
 

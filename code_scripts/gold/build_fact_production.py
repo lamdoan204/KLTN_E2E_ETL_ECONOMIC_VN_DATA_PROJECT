@@ -189,7 +189,7 @@ def build_fact_production_output():
         )
     )
     
-    w_year = Window.partitionBy("year" 'quarter')
+    w_year = Window.partitionBy("year", 'quarter')
 
     result = (
         result

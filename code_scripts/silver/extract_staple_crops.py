@@ -1,4 +1,4 @@
-import pandas as pd
+import pyspark.pandas as pd
 import numpy as np
 from Load_data_to_table import *
 from reuse_function import *
@@ -114,9 +114,7 @@ def insert_staple_crops(excel_file, all_sheets, sheet_index: int, year: int, qua
         ],
         ignore_index=True,
     )
-    merged_df['production'] = merged_df['production'].round(3)
-    merged_df['yield'] = merged_df['yield'].round(3)
-    merged_df['area'] = merged_df['area'].round(3)
+    
     
     merged_df = merged_df.drop_duplicates()
 

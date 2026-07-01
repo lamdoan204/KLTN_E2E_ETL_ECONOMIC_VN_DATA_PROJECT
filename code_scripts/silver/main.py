@@ -10,7 +10,7 @@ from international_ecommerce_extractor import extract_data_from_International_Ec
 from investment_extractor import extract_data_from_Invesment
 from investment_by_sector_extractor import extract_data_from_Investment_by_Sector
 from product_productivity_extractor import extract_data_for_Product_Productivity_fact
-
+from investment_by_sector_extractor import extract_data_from_Investment_by_Sector
 def main_func():
     # lấy tất cả các đường dẫn trong bronze
     bucket_name = 'bronze'
@@ -54,7 +54,12 @@ def main_func():
         # Giải phóng bộ nhớ RAM của file hiện tại trước khi xử lý file tiếp theo
         del excel_file
         gc.collect()
-        
+    
+    print('BẮT ĐẦU TRÍCH XUẤT DỮ LIỆU INVESTMENT BY SECTOR')
+    excel_file = get_investment_by_sector_raw_data()
+    extract_data_from_Investment_by_Sector(excel_file)
+
+      
     print(f"Tải thành công dữ liệu từ file: tháng: {month} - năm: {year} lên SILVER LAYER")
 
 main_func()

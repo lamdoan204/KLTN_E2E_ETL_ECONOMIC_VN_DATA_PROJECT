@@ -23,6 +23,16 @@ def create_bucket(bucket_name):
     except Exception as e:
         print(f'An Error When Create Bucket: {bucket_name}!!!!!!!!!!!', e)
 
+def get_investment_by_sector_raw_data():
+    try:
+        obj = client.get_object(
+            'bronze',
+            'economic_report_excel_files/investment_by_sector_raw_data/V04.03.xlsx'
+        )
+        data = obj.read()
+        return pd.ExcelFile(io.BytesIO(data))
+    except Exception as e:
+        print(f"CÓ LỖI XẢY RA KHI GET INVESTMENT BY SECTOR RAW DATA FILE ")
 def get_excel_file(bucket_name, file_path):
 
     try:
@@ -56,7 +66,7 @@ def load_file(bucket_name, object_name, local_file_path):
     except Exception as e:
         print(f"An Error Occured When Load {local_file_path} to Bucket: {bucket_name} ", e)
 
-    
+
 def get_list_files(bucket_name, prefix):
     try:
         print(f'Dang lay danh sach duong dan file excel trong bucket = {bucket_name}, prefix = {prefix}')

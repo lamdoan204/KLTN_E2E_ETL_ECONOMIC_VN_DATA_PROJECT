@@ -1,5 +1,8 @@
 from pyspark.sql import SparkSession
 
+import boto3
+from botocore.client import Config
+
 def get_spark() -> SparkSession:
     spark = (
         SparkSession.builder
@@ -23,6 +26,45 @@ def get_spark() -> SparkSession:
 
 spark = get_spark()
 
+s3_client = boto3.client(
+    "s3",
+    endpoint_url="http://minio:9000",
+    aws_access_key_id="minioadmin",
+    aws_secret_access_key="minioadmin",
+    config=Config(signature_version="s3v4"),
+    region_name="us-east-1",
+)
+
+def delete_minio_prefix(bucket: str, prefix: str):
+    """
+    Xoá toàn bộ object trong MinIO dưới một prefix cụ thể.
+ 
+    Cần thiết vì sau khi VACUUM và DROP TABLE (external table), Delta vẫn
+    còn giữ lại _delta_log/ và các file Parquet active hiện tại trên MinIO.
+    Boto3 xoá vật lý hoàn toàn, đảm bảo CREATE TABLE tiếp theo tạo bảng
+    thực sự trắng tinh.
+ 
+    Args:
+        bucket: tên bucket MinIO (ví dụ: 'silver')
+        prefix: prefix thư mục cần xoá (ví dụ: 'gdp/')
+    """
+    prefix = prefix.rstrip("/") + "/"  # đảm bảo có trailing slash
+    paginator = s3_client.get_paginator("list_objects_v2")
+    pages = paginator.paginate(Bucket=bucket, Prefix=prefix)
+ 
+    deleted_count = 0
+    for page in pages:
+        objects = page.get("Contents", [])
+        if not objects:
+            continue
+        delete_payload = {"Objects": [{"Key": obj["Key"]} for obj in objects]}
+        s3_client.delete_objects(Bucket=bucket, Delete=delete_payload)
+        deleted_count += len(objects)
+ 
+    print(f"  → Đã xoá {deleted_count} object(s) tại s3://{bucket}/{prefix}")
+ 
+
+
 spark.sql("CREATE DATABASE IF NOT EXISTS gold")
 
 # ─────────────────────────────────────────
@@ -30,6 +72,7 @@ spark.sql("CREATE DATABASE IF NOT EXISTS gold")
 # ─────────────────────────────────────────
 
 spark.sql("DROP TABLE IF EXISTS gold.dim_time;")
+delete_minio_prefix('gold', 'dim_time')
 spark.sql("""
 CREATE TABLE gold.dim_time (
     time_key    INT,
@@ -43,6 +86,8 @@ LOCATION 's3a://gold/dim_time'
 """)
 
 spark.sql("DROP TABLE IF EXISTS gold.dim_sector;")
+delete_minio_prefix('gold', 'dim_sector')
+
 spark.sql("""
 CREATE TABLE gold.dim_sector (
     sector_key  INT,
@@ -53,6 +98,10 @@ LOCATION 's3a://gold/dim_sector'
 """)
 
 spark.sql("DROP TABLE IF EXISTS gold.dim_sub_sector;")
+
+delete_minio_prefix('gold', 'dim_sub_sector')
+
+
 spark.sql("""
 CREATE TABLE gold.dim_sub_sector (
     sub_sector_key  INT,
@@ -64,6 +113,8 @@ LOCATION 's3a://gold/dim_sub_sector'
 """)
 
 spark.sql("DROP TABLE IF EXISTS gold.dim_product;")
+delete_minio_prefix('gold', 'dim_product')
+
 spark.sql("""
 CREATE TABLE gold.dim_product (
     product_key      INT ,
@@ -76,6 +127,8 @@ LOCATION 's3a://gold/dim_product'
 """)
 
 spark.sql("DROP TABLE IF EXISTS gold.dim_crop;")
+delete_minio_prefix('gold', 'dim_crop')
+
 spark.sql("""
 CREATE TABLE gold.dim_crop (
     crop_key      INT,
@@ -87,6 +140,8 @@ LOCATION 's3a://gold/dim_crop'
 """)
 
 spark.sql("DROP TABLE IF EXISTS gold.dim_capital_source;")
+delete_minio_prefix('gold', 'dim_capital_source')
+
 spark.sql("""
 CREATE TABLE gold.dim_capital_source (
     capital_source_key  INT,
@@ -101,6 +156,8 @@ LOCATION 's3a://gold/dim_capital_source'
 # ─────────────────────────────────────────
 
 spark.sql("DROP TABLE IF EXISTS gold.fact_gdp_growth;")
+delete_minio_prefix('gold', 'fact_gdp_growth')
+
 spark.sql("""
 CREATE TABLE gold.fact_gdp_growth (
     time_key                    INT,
@@ -125,6 +182,8 @@ LOCATION 's3a://gold/fact_gdp_growth'
 """)
 
 spark.sql("DROP TABLE IF EXISTS gold.fact_investment_by_sector;")
+delete_minio_prefix('gold', 'fact_investment_by_sector')
+
 spark.sql("""
 CREATE TABLE gold.fact_investment_by_sector (
     time_key                INT,
@@ -142,6 +201,8 @@ LOCATION 's3a://gold/fact_investment_by_sector'
 """)
 
 spark.sql("DROP TABLE IF EXISTS gold.fact_crop_yield;")
+delete_minio_prefix('gold', 'fact_crop_yield')
+
 spark.sql("""
 CREATE TABLE gold.fact_crop_yield (
     time_key                INT,
@@ -163,6 +224,8 @@ LOCATION 's3a://gold/fact_crop_yield'
 """)
 
 spark.sql("DROP TABLE IF EXISTS gold.fact_production_output;")
+delete_minio_prefix('gold', 'fact_production_output')
+
 spark.sql("""
 CREATE TABLE gold.fact_production_output (
     time_key            INT,
@@ -180,6 +243,8 @@ LOCATION 's3a://gold/fact_production_output'
 """)
 
 spark.sql("DROP TABLE IF EXISTS gold.fact_international_trade;")
+delete_minio_prefix('gold', 'fact_international_trade')
+
 spark.sql("""
 CREATE TABLE gold.fact_international_trade (
     time_key                INT,
@@ -199,6 +264,8 @@ LOCATION 's3a://gold/fact_international_trade'
 """)
 
 spark.sql("DROP TABLE IF EXISTS gold.fact_social_total_investment;")
+delete_minio_prefix('gold', 'fact_social_total_investment')
+
 spark.sql("""
 CREATE TABLE gold.fact_social_total_investment (
     time_key                        INT,

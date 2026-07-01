@@ -354,6 +354,11 @@ def insert_df_to_table_silver_layer(df: pd.DataFrame, table_name, year=None, qua
                 'area','area_unit',
                 'year','ingest_at'
             )
+        elif(table_name == 'investment_by_sector'):
+            spark_df = spark_df.select(
+                'name',
+                'value','unit','year','ingest_at'
+            )
 
         spark_df.printSchema()
         spark_df.show()

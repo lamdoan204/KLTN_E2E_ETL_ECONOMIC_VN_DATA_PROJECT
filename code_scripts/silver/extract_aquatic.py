@@ -1,4 +1,4 @@
-import pandas as pd
+import pyspark.pandas as pd
 import numpy as np
 
 import unicodedata  #

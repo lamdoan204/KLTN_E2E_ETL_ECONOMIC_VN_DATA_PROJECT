@@ -1,4 +1,4 @@
-import pandas as pd
+import pyspark.pandas as pd
 
 import re
 import unicodedata
@@ -164,6 +164,57 @@ def extract_intenational_ecommerce_data_sheet_01(sheet : pd.DataFrame, type: str
     except Exception as e:
         print(f'CÓ VẤN ĐỀ XẢY RA KHI TRÍCH XUẤT DỮ LIỆU THƯƠNG MẠI QUỐC TÊ NĂM {year}, THÁNG {month}', e)
 
+
+# HÀM MỚI: TRÍCH XUẤT MẶT HÀNG CHỦ YẾU CHO BÁO CÁO THÁNG 01 (TỪ NĂM 2023 TRỞ ĐI)
+# Báo cáo Tháng 01 có thêm khối cột so sánh với CẢ NĂM TRƯỚC liền kề nằm
+# trước khối cột "Tháng 01 năm nay", nên cấu trúc cột khác hẳn các tháng còn
+# lại trong năm:
+#   Cột B (index 1) : product_name
+#   Cột C, D        : Lượng/Trị giá CẢ NĂM TRƯỚC -> KHÔNG lấy
+#   Cột F (index 5) : quantity  (Tháng 01 năm nay)
+#   Cột G (index 6) : value     (Tháng 01 năm nay)
+#   Cột I, J        : % so cùng kỳ năm trước -> KHÔNG lấy
+def extract_intenational_ecommerce_data_sheet_03(sheet: pd.DataFrame, type: str, month: int, year: int):
+    try:
+        # dò dòng tiêu đề "MẶT HÀNG CHỦ YẾU", dữ liệu mặt hàng bắt đầu ngay dòng kế tiếp
+        start_row = None
+        for i in range(len(sheet)):
+            if isinstance(sheet.iloc[i, 0], str) and 'mathangchuyeu' in clean_text(sheet.iloc[i, 0]):
+                start_row = i + 1
+                break
+
+        if start_row is None:
+            raise ValueError("Không tìm thấy dòng 'MẶT HÀNG CHỦ YẾU' trong sheet")
+
+        sheet = sheet.iloc[start_row:, ::].reset_index(drop=True)
+
+        name_colums = ['product_name', 'quantity', 'value']
+        # chỉ lấy cột B (product_name), F (quantity Tháng 01 năm nay), G (value Tháng 01 năm nay)
+        sheet = sheet.iloc[::, [1, 5, 6]]
+        sheet.columns = name_colums
+
+        # loại bỏ các dòng trống cuối bảng (không còn mặt hàng)
+        sheet = sheet[sheet['product_name'].notna()].reset_index(drop=True)
+
+        sheet['type'] = type
+        sheet['quantity_unit'] = 'Nghìn tấn'
+        sheet['unit'] = 'Triệu USD'
+        sheet['month'] = month
+        sheet['quarter'] = int((month - 1) / 3) + 1
+        sheet['year'] = year
+        sheet['ingest_at'] = pd.Timestamp.now()
+        sheet['quantity'] = sheet['quantity'].fillna(-1)
+        sheet.loc[sheet['quantity'] == -1, 'quantity_unit'] = 'Not Available'
+        sheet = sheet.dropna()
+
+        # chuẩn hóa + mapping tên mặt hàng (gộp các biến thể tên, set Ô tô nguyên chiếc, v.v.)
+        sheet = clean_and_mapping_products(sheet)
+
+        return sheet
+    except Exception as e:
+        print(f'CÓ VẤN ĐỀ XẢY RA KHI TRÍCH XUẤT DỮ LIỆU THƯƠNG MẠI QUỐC TẾ THÁNG 01 NĂM {year}', e)
+
+
 def extract_data_from_International_Ecommerce(excel_file: pd.ExcelFile, year, month):
     all_sheets = excel_file.sheet_names
     import_sheet = None
@@ -178,7 +229,12 @@ def extract_data_from_International_Ecommerce(excel_file: pd.ExcelFile, year, mo
             export_sheet = pd.read_excel(excel_file, sheet_name= all_sheets[i], header= None)
         if import_sheet is not None and export_sheet is not None : break
 
-    if year > 2018 or (year == 2018 and month >= 9) :
+    # TỪ NĂM 2023 TRỞ ĐI, RIÊNG THÁNG 01 CÓ CẤU TRÚC CỘT KHÁC (DO CÓ THÊM
+    # KHỐI SO SÁNH VỚI CẢ NĂM TRƯỚC), NÊN DÙNG HÀM TRÍCH XUẤT RIÊNG
+    if year >= 2023 and month == 1:
+        import_sheet = extract_intenational_ecommerce_data_sheet_03(import_sheet, 'Import', month, year)
+        export_sheet = extract_intenational_ecommerce_data_sheet_03(export_sheet, 'Export', month, year)
+    elif year > 2018 or (year == 2018 and month >= 9):
         import_sheet = extract_intenational_ecommerce_data_sheet_02(import_sheet, 'Import', month, year)
         export_sheet = extract_intenational_ecommerce_data_sheet_02(export_sheet, 'Export', month, year)
     else:
