@@ -3,8 +3,8 @@ import numpy as np
 
 import unicodedata  #
 
-from Load_data_to_table import *
-from search_sheet_index import search_start_and_end_index, THUYSAN_TITLE
+from code_scripts.silver.numeric_data.Load_data_to_table import *
+from code_scripts.silver.numeric_data.search_sheet_index import search_start_and_end_index, THUYSAN_TITLE
 
 
 def normalize_product_name(series: pd.Series) -> pd.Series:
@@ -176,6 +176,5 @@ def insert_aquatic_products(excel_file, all_sheets, sheet_index: int, year: int,
         thuysan_sheet = thuysan_sheet[thuysan_sheet['product_name'].notna()]
         thuysan_sheet = thuysan_sheet.dropna()
 
-        thuysan_sheet['value'] = pd.to_numeric(thuysan_sheet['value'], errors= 'coerce').round(3)
 
         insert_df_to_table_silver_layer(thuysan_sheet, 'aquatic_products', year, quarter)

@@ -373,6 +373,8 @@ services:
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=6g
+      - SPARK_WORKER_CORES=10
     
     depends_on:
       - spark-master            

@@ -181,24 +181,6 @@ USING DELTA
 LOCATION 's3a://gold/fact_gdp_growth'
 """)
 
-spark.sql("DROP TABLE IF EXISTS gold.fact_investment_by_sector;")
-delete_minio_prefix('gold', 'fact_investment_by_sector')
-
-spark.sql("""
-CREATE TABLE gold.fact_investment_by_sector (
-    time_key                INT,
-    sector_key              INT,
-    sub_sector_key          INT,
-    unit                    STRING,
-    investment_value        FLOAT,
-    investment_value_pre_year FLOAT,
-    yoy_growth_rate         FLOAT,
-    sector_share_pct        FLOAT,
-    all_sector_share_pct    FLOAT
-)
-USING DELTA
-LOCATION 's3a://gold/fact_investment_by_sector'
-""")
 
 spark.sql("DROP TABLE IF EXISTS gold.fact_crop_yield;")
 delete_minio_prefix('gold', 'fact_crop_yield')
@@ -207,7 +189,7 @@ spark.sql("""
 CREATE TABLE gold.fact_crop_yield (
     time_key                INT,
     crop_key                INT,
-    production_unit         STRING,
+    productivity_unit         STRING,
     yield_unit              STRING,
     area_unit               STRING,
     area                    FLOAT,
@@ -216,8 +198,8 @@ CREATE TABLE gold.fact_crop_yield (
     area_pre_year           FLOAT,
     yield_pre_year          FLOAT,
     productivity_pre_year   FLOAT,
-    yield_yoy_growth_rate   FLOAT,
-    yield_share_pct         FLOAT
+    productivity_yoy_growth_rate   FLOAT,
+    productivity_share_pct         FLOAT
 )
 USING DELTA
 LOCATION 's3a://gold/fact_crop_yield'

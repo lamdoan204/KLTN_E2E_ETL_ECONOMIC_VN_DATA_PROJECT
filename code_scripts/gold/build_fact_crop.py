@@ -66,7 +66,8 @@ def build_fact_crop():
             "left"
         ).select(
             col('c.*'),
-            col('t.crop_key')
+            col('t.crop_key'),
+            col('t.crop_category')
         )
     )
     del dim_crop
@@ -87,15 +88,15 @@ def build_fact_crop():
 
             col("p.area").alias("area_pre_year"),
             col("p.yield").alias("yield_pre_year"),
-            col("p.production").alias("productivity_pre_year")
+            col("p.production").alias("production_pre_year")
         )
     )
     del cur
     del pre
     result = result.withColumn(
-    "yield_yoy_growth_rate",
+    "productivity_yoy_growth_rate",
         when(
-            col("yield_pre_year") > 0,
+            col("yield") > 0,
             round(
                 (col("yield") - col("yield_pre_year"))
                 / col("yield_pre_year") * 100,
@@ -103,7 +104,7 @@ def build_fact_crop():
             )
         )
     )
-    w_year = Window.partitionBy("year")
+    w_year = Window.partitionBy("year", 'crop_category')
 
     result = (
         result
@@ -112,7 +113,7 @@ def build_fact_crop():
             sum("yield").over(w_year)
         )
         .withColumn(
-            "yield_share_pct",
+            "productivity_share_pct",
             round(
                 col("yield") / col("total_yield") * 100,
                 3
@@ -125,21 +126,23 @@ def build_fact_crop():
         result.select(
             col("time_key").cast("int").alias("time_key"),
             col("crop_key").cast("int").alias("crop_key"),
+            col("yield_unit").cast("string").alias("productivity_unit"),
 
-            col("production_unit").cast("string").alias("production_unit"),
-            col("yield_unit").cast("string").alias("yield_unit"),
+            col("production_unit").cast("string").alias("yield_unit"),
             col("area_unit").cast("string").alias("area_unit"),
 
             col("area").cast("float").alias("area"),
-            col("yield").cast("float").alias("yield_value"),
-            col("production").cast("float").alias("productivity"),
+            col("production").cast("float").alias("yield_value"),
+
+            col("yield").cast("float").alias("productivity"),
 
             col("area_pre_year").cast("float").alias("area_pre_year"),
-            col("yield_pre_year").cast("float").alias("yield_pre_year"),
-            col("productivity_pre_year").cast("float").alias("productivity_pre_year"),
+            col("production_pre_year").cast("float").alias("yield_pre_year"),
 
-            col("yield_yoy_growth_rate").cast("float").alias("yield_yoy_growth_rate"),
-            col("yield_share_pct").cast("float").alias("yield_share_pct")
+            col("yield_pre_year").cast("float").alias("productivity_pre_year"),
+
+            col("productivity_yoy_growth_rate").cast("float").alias("productivity_yoy_growth_rate"),
+            col("productivity_share_pct").cast("float").alias("productivity_share_pct")
         )
         .fillna(0)
     )

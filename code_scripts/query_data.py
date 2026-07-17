@@ -28,4 +28,21 @@ def get_spark() -> SparkSession:
 
 spark = get_spark()
 
-spark.table('silver.investment_by_sector').show(1000)
+# spark.sql("""
+#           DELETE FROM delta.`s3a://gold/dim_product`
+# WHERE product_key BETWEEN 2 AND 5;
+# """)
+
+
+# spark.sql("""
+#           DELETE FROM delta.`s3a://gold/fact_international_trade`
+# WHERE product_key BETWEEN 2 AND 5;
+# """)
+spark.sql("""
+        select * 
+        from
+        delta.`s3a://gold/fact_international_trade` it
+        left join delta.`s3a://gold/dim_product` p
+        on it.product_key = p.product_key
+        
+          """).show()

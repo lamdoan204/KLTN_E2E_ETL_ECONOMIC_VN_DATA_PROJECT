@@ -19,7 +19,7 @@ toàn bộ nằm trong file này, được expose qua hàm `render_dashboard()`.
 from __future__ import annotations
 
 from typing import Any, Callable
-
+import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -539,41 +539,98 @@ def render_kpis(df: pd.DataFrame) -> None:
 
     total_trade_value = df["trade_value"].sum()
     total_quantity = df["quantity"].sum()
-    avg_unit_value = calculate_average_unit_value(df)
     avg_mom = df["mom_growth_rate"].mean()
     avg_yoy = df["yoy_growth_rate"].mean()
-    largest_share = df["product_share_pct"].max()
 
+    # ==========================
+    # Top Trading Product
+    # ==========================
     top_product = "N/A"
-    product_totals = df.groupby("product_name")["trade_value"].sum()
-    if not product_totals.empty:
-        top_product = str(product_totals.idxmax())
+    top_product_share = np.nan
 
-    mom_class = "kpi-positive" if avg_mom >= 0 else "kpi-negative"
-    yoy_class = "kpi-positive" if avg_yoy >= 0 else "kpi-negative"
-
-    # Đơn vị giá trị phù hợp cho Average Unit Value: ưu tiên cặp
-    # value_unit / quantity_unit phổ biến nhất trong dữ liệu đã lọc.
-    unit_label = "N/A"
-    if not df.empty:
-        value_unit_mode = df["value_unit"].mode()
-        quantity_unit_mode = df["quantity_unit"].mode()
-        if not value_unit_mode.empty and not quantity_unit_mode.empty:
-            unit_label = f"{value_unit_mode.iloc[0]}/{quantity_unit_mode.iloc[0]}"
-
-    avg_unit_value_display = (
-        "N/A" if pd.isna(avg_unit_value) else f"{_format_number(avg_unit_value)} {unit_label}"
+    summary = (
+        df.groupby("product_name", as_index=False)
+        .agg(
+            trade_value=("trade_value", "sum"),
+            mean_share=("product_share_pct", "mean")
+        )
     )
+
+    if not summary.empty:
+        top_row = summary.loc[summary["trade_value"].idxmax()]
+        top_product = top_row["product_name"]
+        top_product_vale = top_row["trade_value"]
+
+    # ==========================
+    # Top Export Product
+    # ==========================
+    top_export = "N/A"
+
+    export_summary = (
+        df[df["trade_type"] == "Export"]
+        .groupby("product_name", as_index=False)
+        .agg(
+            trade_value=("trade_value", "sum")
+        )
+    )
+
+    if not export_summary.empty:
+        top_row = export_summary.loc[export_summary["trade_value"].idxmax()]
+        total_export_value = export_summary["trade_value"].sum()
+
+        top_total_export_vale = top_row['trade_value'].sum()
+        
+        top_export = top_row["product_name"]
+        top_export_share = (
+            top_row["trade_value"] / total_export_value * 100
+            if total_export_value > 0 else np.nan
+        )
+
+    # ==========================
+    # Top Import Product
+    # ==========================
+    top_import = "N/A"
+    top_import_share = np.nan
+
+    import_summary = (
+        df[df["trade_type"] == "Import"]
+        .groupby("product_name", as_index=False)
+        .agg(
+            trade_value=("trade_value", "sum")
+        )
+    )
+
+    if not import_summary.empty:
+        top_row = import_summary.loc[import_summary["trade_value"].idxmax()]
+        total_import_value = import_summary["trade_value"].sum()
+        top_total_import_value = top_row['trade_value'].sum()
+        top_import = top_row["product_name"]
+        top_import_share = (
+            top_row["trade_value"] / total_import_value * 100
+            if total_import_value > 0 else np.nan
+        )
 
     cols = st.columns(7)
     kpi_data = [
         ("Total Trade Value", _format_number(total_trade_value), ""),
         ("Total Quantity", _format_number(total_quantity), ""),
-        ("Average Unit Value", avg_unit_value_display, ""),
-        ("Average MoM Growth", _format_percent(avg_mom), mom_class),
-        ("Average YoY Growth", _format_percent(avg_yoy), yoy_class),
-        ("Largest Product Share", _format_percent(largest_share), ""),
-        ("Top Trading Product", top_product, "kpi-positive"),
+        ("Average MoM Growth", _format_percent(avg_mom), ""),
+        ("Average YoY Growth", _format_percent(avg_yoy), ""),
+        (
+            "Top Trading Product",
+            f"{top_product}<br><medium>{_format_number(top_product_vale)}</medium>",
+            "kpi-positive",
+        ),
+        (
+            "Top Export Product",
+            f"{top_export}<br><medium>{_format_number(top_total_export_vale)}</medium>",
+            "kpi-positive",
+        ),
+        (
+            "Top Import Product",
+            f"{top_import}<br><medium>{_format_number(top_total_import_value)}</medium>",
+            "kpi-positive",
+        ),
     ]
 
     for col, (label, value, css_class) in zip(cols, kpi_data):
@@ -759,21 +816,68 @@ def chart_treemap(df: pd.DataFrame) -> go.Figure:
 
     Kích thước ô theo Trade Value, màu sắc theo YoY Growth Rate.
     """
+    """Vẽ Treemap: Trade Type -> Product Category -> Product Name."""
+    """Vẽ Treemap: Trade Type -> Product Category -> Product Name."""
+
     grouped = (
-        df.groupby(["trade_type", "product_category", "product_name"], as_index=False)
-        .agg(trade_value=("trade_value", "sum"), yoy_growth_rate=("yoy_growth_rate", "mean"))
+        df.groupby(
+            ["trade_type", "product_category", "product_name"],
+            as_index=False,
+        )
+        .agg(
+            trade_value=("trade_value", "sum"),
+            quantity=("quantity", "sum"),
+            value_unit=("value_unit", "first"),
+            quantity_unit=("quantity_unit", "first"),
+        )
     )
-    grouped = grouped[grouped["trade_value"] > 0]
+
+    # Loại bỏ dữ liệu không hợp lệ
+    grouped = grouped[grouped["trade_value"] > 0].copy()
+
+    # Sắp xếp theo trade value
+    grouped = grouped.sort_values(
+        ["trade_type", "product_category", "trade_value"],
+        ascending=[True, True, False],
+        kind="stable",
+    )
+
+    # Chuỗi hiển thị Quantity (chỉ khi quantity >= 0)
+    grouped["quantity_html"] = grouped.apply(
+        lambda row: (
+            f"<b>Quantity</b>: {row['quantity']:,.2f} {row['quantity_unit']}<br>"
+            if pd.notna(row["quantity"]) and row["quantity"] >= 0
+            else ""
+        ),
+        axis=1,
+    )
 
     fig = px.treemap(
         grouped,
         path=["trade_type", "product_category", "product_name"],
         values="trade_value",
-        color="yoy_growth_rate",
-        color_continuous_scale=[COLOR_NEGATIVE, "#FFFFFF", COLOR_POSITIVE],
-        color_continuous_midpoint=0,
         title="Trade Structure (Treemap)",
-        labels={"yoy_growth_rate": "YoY Growth (%)"},
+        custom_data=[
+            "trade_value",
+            "value_unit",
+            "quantity_html",
+        ],
+    )
+
+    fig.update_traces(
+        texttemplate="<b>%{label}</b>",
+        hovertemplate="""
+    <b>%{label}</b><br>
+    Trade Type: %{parent}<br><br>
+
+    <b>Trade Value</b>: %{customdata[0]:,.2f} %{customdata[1]}<br>
+    %{customdata[2]}
+    <extra></extra>
+    """
+    )
+
+    fig.update_layout(
+        margin=dict(t=40, l=10, r=10, b=10),
     )
     return _apply_chart_theme(fig, height=480)
 
@@ -910,10 +1014,9 @@ def render_ranking_section(df: pd.DataFrame) -> None:
     """Render Row 3: Top 10 Trade Value & Top 10 Quantity (Horizontal Bar)."""
     st.markdown('<div class="trade-section-title">Bảng xếp hạng</div>', unsafe_allow_html=True)
     col1, col2 = st.columns(2)
-    with col1:
-        _chart_card(chart_top10_trade_value, df)
-    with col2:
-        _chart_card(chart_top10_quantity, df)
+    _chart_card(chart_top10_trade_value, df)
+    # with col2:
+    #     _chart_card(chart_top10_quantity, df)
 
 
 def render_growth_section(df: pd.DataFrame) -> None:
@@ -1057,6 +1160,6 @@ def render_dashboard() -> None:
     render_import_export_section(filtered_df)
     render_structure_section(filtered_df)
     render_ranking_section(filtered_df)
-    render_growth_section(filtered_df)
-    render_comparison_section(filtered_df)
-    render_drilldown_section(filtered_df)
+    # render_growth_section(filtered_df)
+    # render_comparison_section(filtered_df)
+    # render_drilldown_section(filtered_df)

@@ -1,8 +1,8 @@
 import pyspark.pandas as pd
 import numpy as np
-from Load_data_to_table import *
-from reuse_function import *
-from search_sheet_index import search_start_and_end_index, CHUYEU_TITLE
+from code_scripts.silver.numeric_data.Load_data_to_table import *
+from code_scripts.silver.numeric_data.reuse_function import *
+from code_scripts.silver.numeric_data.search_sheet_index import search_start_and_end_index, CHUYEU_TITLE
 
 
 def insert_staple_crops(excel_file, all_sheets, sheet_index: int, year: int, quarter: int):

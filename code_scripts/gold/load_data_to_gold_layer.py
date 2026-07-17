@@ -4,7 +4,7 @@ from build_fact_crop import main_build_fact_crop
 from build_fact_production import main_build_fact_production_output
 from buid_fact_total_investment import main_build_fact_total_investment
 from build_fact_trade_international_fact import main_build_fact_trade_international
-
+from build_fact_investment_by_sector import main_build_fact_investment_by_sector
 
 main_build_dim()
 main_build_fact_gdp()

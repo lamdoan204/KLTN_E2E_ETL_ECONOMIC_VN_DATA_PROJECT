@@ -37,7 +37,7 @@ def get_spark_session() -> SparkSession:
         .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false")
         .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
         .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
-        .config("spark.executor.memory", os.getenv("SPARK_EXECUTOR_MEMORY", "2g"))
+        .config("spark.executor.memory", os.getenv("SPARK_EXECUTOR_MEMORY", "1g"))
         .config("spark.executor.cores", os.getenv("SPARK_EXECUTOR_CORES", "1"))
         .config("spark.sql.shuffle.partitions", os.getenv("SPARK_SHUFFLE_PARTITIONS", "8"))
         .enableHiveSupport()

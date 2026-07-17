@@ -2,9 +2,9 @@ import re
 import pandas as pd
 import traceback
 
-from Load_data_to_table import *
-from reuse_function import *
-from search_sheet_index import search_start_and_end_index, LAUNAM_TITLE
+from code_scripts.silver.numeric_data.Load_data_to_table import *
+from code_scripts.silver.numeric_data.reuse_function import *
+from code_scripts.silver.numeric_data.search_sheet_index import search_start_and_end_index, LAUNAM_TITLE
 
 def _to_float(series):
     """Chuyển cột giá trị về float, hỗ trợ cả số đã là float/int
@@ -173,8 +173,6 @@ def insert_perennial_crops(excel_file, all_sheets, sheet_index: int, year: int, 
         merged_df['ingest_at'] = pd.Timestamp.now()
         
         merged_df = merged_df.drop_duplicates()
-        merged_df['area'] = merged_df['area'].round(3)
-        merged_df['yield'] = merged_df['yield'].round() 
         
         # Đẩy dữ liệu sạch vào Silver layer
         insert_df_to_table_silver_layer(merged_df, 'perennial_crops', year, quarter)

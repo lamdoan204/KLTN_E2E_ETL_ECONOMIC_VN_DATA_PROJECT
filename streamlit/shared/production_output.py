@@ -518,23 +518,25 @@ def render_kpis(df: pd.DataFrame) -> None:
     category_totals = df.groupby("product_category")["value"].sum()
     if not category_totals.empty:
         largest_category = str(category_totals.idxmax())
-
+        
     top_product = "N/A"
     product_totals = df.groupby("product_name")["value"].sum()
     if not product_totals.empty:
         top_product = str(product_totals.idxmax())
 
+    unit_label = "N/A"
+
+    unit_mode = df["unit"].mode()
+    if not unit_mode.empty:
+        unit_label = unit_mode.iloc[0]
     yoy_class = "kpi-positive" if avg_yoy >= 0 else "kpi-negative"
     qoq_class = "kpi-positive" if avg_qoq >= 0 else "kpi-negative"
 
-    cols = st.columns(6)
+    cols = st.columns(3)
     kpi_data = [
-        ("Total Production Output", _format_number(total_output), ""),
+        ("Total Production Output", f"{_format_number(total_output)} {unit_label}", ""),
         ("Average YoY Growth", _format_percent(avg_yoy), yoy_class),
         ("Average QoQ Growth", _format_percent(avg_qoq), qoq_class),
-        ("Largest Product Category", largest_category, ""),
-        ("Largest Product Share", _format_percent(largest_share), ""),
-        ("Top Product", top_product, "kpi-positive"),
     ]
 
     for col, (label, value, css_class) in zip(cols, kpi_data):
@@ -658,11 +660,11 @@ def chart_production_by_category(df: pd.DataFrame) -> go.Figure:
 
 def chart_production_share(df: pd.DataFrame) -> go.Figure:
     """Vẽ Donut Chart: Production Share theo Product Category."""
-    grouped = df.groupby("product_category", as_index=False).agg(product_share_pct=("product_share_pct", "mean"))
+    grouped = df.groupby(["product_name"], as_index=False).agg(product_share_pct=("value", "mean"))
 
     fig = px.pie(
         grouped,
-        names="product_category",
+        names="product_name",
         values="product_share_pct",
         hole=0.55,
         color_discrete_sequence=DISCRETE_PALETTE,
@@ -724,20 +726,54 @@ def chart_treemap(df: pd.DataFrame) -> go.Figure:
     Kích thước ô theo Production Value, màu sắc theo YoY Growth Rate.
     """
     grouped = (
-        df.groupby(["product_category", "product_type", "product_name"], as_index=False)
-        .agg(value=("value", "sum"), yoy_growth_rate=("yoy_growth_rate", "mean"))
+        df.groupby(
+            [
+                "product_category",
+                "unit",
+                "product_type",
+                "product_name",
+            ],
+            as_index=False,
+        )
+        .agg(
+            value=("value", "sum"),
+        )
+    )
+    grouped["share"] = (
+        grouped["value"]
+        / grouped.groupby(["product_category", "unit"])["value"].transform("sum")
     )
     grouped = grouped[grouped["value"] > 0]
 
     fig = px.treemap(
         grouped,
-        path=["product_category", "product_type", "product_name"],
-        values="value",
-        color="yoy_growth_rate",
-        color_continuous_scale=[COLOR_NEGATIVE, "#FFFFFF", COLOR_POSITIVE],
-        color_continuous_midpoint=0,
+        path=[
+            "product_category",
+            "unit",
+            "product_type",
+            "product_name",
+        ],
+        values="share",
+        color="product_name",  # Mỗi đơn vị một màu (có thể bỏ nếu không muốn)
         title="Production Structure (Treemap)",
-        labels={"yoy_growth_rate": "YoY Growth (%)"},
+        custom_data=[
+            "value",
+            "unit",
+        ],
+    )
+
+    fig.update_traces(
+        texttemplate="<b>%{label}</b>",
+        hovertemplate="""
+    <b>%{label}</b><br>
+    Category: %{parent}<br>
+    Production: %{customdata[0]:,.2f} %{customdata[1]}
+    <extra></extra>
+    """
+    )
+
+    fig.update_layout(
+        margin=dict(t=50, l=10, r=10, b=10),
     )
     return _apply_chart_theme(fig, height=480)
 
@@ -988,7 +1024,7 @@ def render_dashboard() -> None:
     render_kpis(filtered_df)
     render_trend_section(filtered_df)
     render_structure_section(filtered_df)
-    render_ranking_section(filtered_df)
-    render_growth_section(filtered_df)
-    render_comparison_section(filtered_df)
-    render_drilldown_section(filtered_df)
+    # render_ranking_section(filtered_df)
+    # render_growth_section(filtered_df)
+    # render_comparison_section(filtered_df)
+    # render_drilldown_section(filtered_df)

@@ -17,6 +17,7 @@ from shared.crop_yield import render_dashboard as crop_render
 from shared.production_output import render_dashboard as product_output_render
 from shared.international_trade import render_dashboard as international_trade_render
 from shared.social_investment import render_dashboard as social_investment_render
+from shared.investment_by_sector import render_dashboard as investment_by_sector_render
 import streamlit as st
 
 st.set_page_config(
@@ -34,9 +35,9 @@ st.set_page_config(
 TAB_LABELS = [
     "📈 GDP Dashboard",
     "🌾 Crop Yield Dashboard",
-    "🏭 National Production Dashboard",
+    "Social Investment Source",
     "International Production Trade Dashboard",
-    "Social Investment Source"
+    "🏭 National Production Dashboard",
     # "💰 Sales Performance",  # ví dụ: bỏ comment khi thêm dashboard mới
 ]
 
@@ -48,14 +49,15 @@ with tabs[0]:
 with tabs[1]:
     crop_render()  # noqa: F401
 
-with tabs[2]:
+with tabs[4]:
     product_output_render()  # noqa: F401
 
 with tabs[3]:
     international_trade_render()
     
-with tabs[4]:
+with tabs[2]:
     social_investment_render()
+
 # Ví dụ thêm dashboard mới trong tương lai:
 # with tabs[3]:
 #     from tabs import sales  # noqa: F401

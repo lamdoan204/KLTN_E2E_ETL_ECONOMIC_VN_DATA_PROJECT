@@ -103,6 +103,8 @@ def _inject_css() -> None:
         }}
         [data-testid="stMetricValue"] {{
             color: #FFFFFF !important;
+            font-size: 1.1rem;
+            wqline-height: 1.3;
         }}
         [data-testid="stMetricDelta"] {{
             color: #CFE3FB !important;
@@ -201,6 +203,7 @@ def load_data() -> SparkDataFrame:
         )
     )
     return joined_df
+
 
 
 def get_filter_options(spark_df: SparkDataFrame) -> Dict[str, List[Any]]:
@@ -336,22 +339,23 @@ def render_filters(spark_df: SparkDataFrame) -> Dict[str, Tuple[Any, ...]]:
 
     st.markdown("<div class='inv-card'>", unsafe_allow_html=True)
     col1, col2, col3, col4 = st.columns(4)
+    
 
     with col1:
         selected_years = st.multiselect(
-            "Year", options=options["years"], default=options["years"], key="inv_year"
+            "Year", options["years"], default=[], key="inv_year"
         )
     with col2:
         selected_quarters = st.multiselect(
-            "Quarter", options=options["quarters"], default=options["quarters"], key="inv_quarter"
+            "Quarter", options["quarters"], default=[], key="inv_quarter"
         )
     with col3:
         selected_sources = st.multiselect(
-            "Capital Source", options=options["sources"], default=options["sources"], key="inv_source"
+            "Capital Source", options["sources"], default=[], key="inv_source"
         )
     with col4:
         selected_units = st.multiselect(
-            "Unit", options=options["units"], default=options["units"], key="inv_unit"
+            "Unit", options["units"], default=[], key="inv_unit"
         )
 
     st.markdown("</div>", unsafe_allow_html=True)
@@ -385,14 +389,20 @@ def render_kpis(pdf: pd.DataFrame) -> None:
     avg_yoy = pdf["yoy_growth_rate"].mean()
 
     by_source = pdf.groupby("source_name")["investment_value"].sum()
+
     largest_source = by_source.idxmax()
-    largest_share = pdf["source_share_pct"].max()
+
+    largest_share = (
+        by_source.max() / by_source.sum() * 100
+        if by_source.sum() > 0
+        else 0
+    )
     num_sources = pdf["source_name"].nunique()
 
-    col1, col2, col3, col4, col5, col6 = st.columns(6)
+    col1, col2, col3, col4, col5= st.columns(5)
 
     with col1:
-        st.metric("Total Investment", f"{total_investment:,.0f}")
+        st.metric("Total Investment (Nghìn tỷ đồng)", f"{total_investment:,.0f}")
     with col2:
         st.metric("Avg QoQ Growth", f"{avg_qoq:.2f}%")
     with col3:
@@ -401,8 +411,7 @@ def render_kpis(pdf: pd.DataFrame) -> None:
         st.metric("Largest Capital Source", f"{largest_source}")
     with col5:
         st.metric("Largest Source Share", f"{largest_share:.2f}%")
-    with col6:
-        st.metric("Number of Capital Sources", f"{num_sources}")
+ 
 
 
 # ============================================================
@@ -500,53 +509,82 @@ def render_structure_section(pdf: pd.DataFrame) -> None:
         st.plotly_chart(_apply_chart_layout(fig), use_container_width=True)
         _section_end()
 
-    with col2:
-        _section_title("Capital Source Share")
-        share_df = pdf.groupby("source_name", as_index=False)["investment_value"].sum()
-        fig = px.pie(
-            share_df,
-            names="source_name",
-            values="investment_value",
-            hole=0.55,
-            color_discrete_sequence=CHART_COLOR_SEQUENCE,
-        )
-        st.plotly_chart(_apply_chart_layout(fig), use_container_width=True)
-        _section_end()
+    # with col2:
+    #     _section_title("Capital Source Share")
+    #     share_df = pdf.groupby("source_name", as_index=False)["investment_value"].sum()
+    #     fig = px.pie(
+    #         share_df,
+    #         names="source_name",
+    #         values="investment_value",
+    #         hole=0.55,
+    #         color_discrete_sequence=CHART_COLOR_SEQUENCE,
+    #     )
+    #     st.plotly_chart(_apply_chart_layout(fig), use_container_width=True)
+    #     _section_end()
 
     col3, col4 = st.columns(2)
 
-    with col3:
+    with col2:
         _section_title("Treemap")
-        tree_df = pdf.groupby("source_name", as_index=False).agg(
-            investment_value=("investment_value", "sum"),
-            yoy_growth_rate=("yoy_growth_rate", "mean"),
+
+        tree_df = (
+            pdf.groupby("source_name", as_index=False)
+            .agg(
+                investment_value=("investment_value", "sum"),
+                yoy_growth_rate=("yoy_growth_rate", "mean"),
+            )
         )
+
+        # Tính tỷ trọng trên tổng vốn đầu tư
+        total_investment = tree_df["investment_value"].sum()
+        tree_df["investment_pct"] = (
+            tree_df["investment_value"] / total_investment * 100
+        )
+
         fig = px.treemap(
             tree_df,
             path=["source_name"],
-            values="investment_value",
+            values="investment_value",          # diện tích theo giá trị thực
             color="yoy_growth_rate",
             color_continuous_scale=["#E74C3C", "#F5A623", "#2ECC71"],
+            custom_data=[
+                "investment_value",
+                "investment_pct",
+                "yoy_growth_rate",
+            ],
         )
+
+        fig.update_traces(
+            texttemplate="<b>%{label}</b><br>%{customdata[1]:.1f}%",
+            hovertemplate="""
+        <b>%{label}</b><br><br>
+        Investment: %{customdata[0]:,.2f} Nghìn tỷ đồng<br>
+        Share: %{customdata[1]:.2f}%<br>
+        YoY Growth: %{customdata[2]:.2f}%<br>
+        <extra></extra>
+        """
+        )
+
         st.plotly_chart(_apply_chart_layout(fig), use_container_width=True)
+
         _section_end()
 
-    with col4:
-        _section_title("Capital Source Structure")
-        area_df = pdf.groupby(
-            ["quarter_label", "source_name"], as_index=False
-        )["investment_value"].sum()
-        fig = px.area(
-            area_df,
-            x="quarter_label",
-            y="investment_value",
-            color="source_name",
-            groupnorm="fraction",
-            color_discrete_sequence=CHART_COLOR_SEQUENCE,
-        )
-        fig.update_layout(xaxis_title="Quarter", yaxis_title="Share")
-        st.plotly_chart(_apply_chart_layout(fig), use_container_width=True)
-        _section_end()
+    # with col4:
+    #     _section_title("Capital Source Structure")
+    #     area_df = pdf.groupby(
+    #         ["quarter_label", "source_name"], as_index=False
+    #     )["investment_value"].sum()
+    #     fig = px.area(
+    #         area_df,
+    #         x="quarter_label",
+    #         y="investment_value",
+    #         color="source_name",
+    #         groupnorm="fraction",
+    #         color_discrete_sequence=CHART_COLOR_SEQUENCE,
+    #     )
+    #     fig.update_layout(xaxis_title="Quarter", yaxis_title="Share")
+    #     st.plotly_chart(_apply_chart_layout(fig), use_container_width=True)
+    #     _section_end()
 
 
 # ============================================================
@@ -566,40 +604,40 @@ def render_ranking_section(pdf: pd.DataFrame) -> None:
 
     col1, col2 = st.columns(2)
 
-    with col1:
-        _section_title("Top Investment Sources")
-        top_inv = pdf.groupby("source_name", as_index=False)["investment_value"].sum()
-        top_inv = top_inv.sort_values("investment_value", ascending=True)
-        fig = px.bar(
-            top_inv,
-            x="investment_value",
-            y="source_name",
-            orientation="h",
-            color_discrete_sequence=[COLOR_ACCENT],
-        )
-        fig.update_layout(xaxis_title="Investment Value", yaxis_title="")
-        st.plotly_chart(_apply_chart_layout(fig), use_container_width=True)
-        _section_end()
+    # with col1:
+    _section_title("Top Investment Sources")
+    top_inv = pdf.groupby("source_name", as_index=False)["investment_value"].sum()
+    top_inv = top_inv.sort_values("investment_value", ascending=True)
+    fig = px.bar(
+        top_inv,
+        x="investment_value",
+        y="source_name",
+        orientation="h",
+        color_discrete_sequence=[COLOR_ACCENT],
+    )
+    fig.update_layout(xaxis_title="Investment Value", yaxis_title="")
+    st.plotly_chart(_apply_chart_layout(fig), use_container_width=True)
+    _section_end()
 
-    with col2:
-        _section_title("Top Growth Sources")
-        top_growth = pdf.groupby("source_name", as_index=False)["yoy_growth_rate"].mean()
-        top_growth = top_growth.sort_values("yoy_growth_rate", ascending=True)
-        bar_colors = [
-            COLOR_POSITIVE if value >= 0 else COLOR_NEGATIVE
-            for value in top_growth["yoy_growth_rate"]
-        ]
-        fig = go.Figure(
-            go.Bar(
-                x=top_growth["yoy_growth_rate"],
-                y=top_growth["source_name"],
-                orientation="h",
-                marker_color=bar_colors,
-            )
-        )
-        fig.update_layout(xaxis_title="YoY Growth Rate (%)", yaxis_title="")
-        st.plotly_chart(_apply_chart_layout(fig), use_container_width=True)
-        _section_end()
+    # with col2:
+    #     _section_title("Top Growth Sources")
+    #     top_growth = pdf.groupby("source_name", as_index=False)["yoy_growth_rate"].mean()
+    #     top_growth = top_growth.sort_values("yoy_growth_rate", ascending=True)
+    #     bar_colors = [
+    #         COLOR_POSITIVE if value >= 0 else COLOR_NEGATIVE
+    #         for value in top_growth["yoy_growth_rate"]
+    #     ]
+    #     fig = go.Figure(
+    #         go.Bar(
+    #             x=top_growth["yoy_growth_rate"],
+    #             y=top_growth["source_name"],
+    #             orientation="h",
+    #             marker_color=bar_colors,
+    #         )
+    #     )
+    #     fig.update_layout(xaxis_title="YoY Growth Rate (%)", yaxis_title="")
+    #     st.plotly_chart(_apply_chart_layout(fig), use_container_width=True)
+    #     _section_end()
 
 
 # ============================================================
@@ -791,6 +829,7 @@ def render_dashboard() -> None:
     render_trend_section(pdf)
     render_structure_section(pdf)
     render_ranking_section(pdf)
-    render_growth_section(pdf)
-    render_comparison_section(pdf)
-    render_contribution_section(pdf)
+    # render_growth_section(pdf)
+    # render_comparison_section(pdf)
+    # render_contribution_section(pdf)
+    

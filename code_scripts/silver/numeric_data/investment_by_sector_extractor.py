@@ -1,9 +1,9 @@
 import pandas as pd
 import re
 from datetime import datetime, timezone
-from minio_funcs import *
-from reuse_function import *
-from Load_data_to_table import *
+from code_scripts.silver.numeric_data.minio_funcs import *
+from code_scripts.silver.numeric_data.reuse_function import *
+from code_scripts.silver.numeric_data.Load_data_to_table import *
 
 
 def extract_data_from_Investment_by_Sector(df: pd.ExcelFile):
@@ -109,8 +109,12 @@ def extract_data_from_Investment_by_Sector(df: pd.ExcelFile):
                 'year': year,
                 'ingest_at': ingest_at,
             })
-
+      
     result_df = pd.DataFrame(records, columns=['name', 'value', 'unit', 'year', 'ingest_at'])
+    result_df['name'] = result_df['name'].replace(
+        'Nông nghiệp, lâm nghiệp và thủy sản',
+        'Nông, lâm nghiệp và thủy sản'
+    )
     insert_df_to_table_silver_layer(result_df, 'investment_by_sector')
 
 

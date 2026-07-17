@@ -4,9 +4,9 @@ import re
 import unicodedata
 
 
-from minio_funcs import *
-from reuse_function import *
-from Load_data_to_table import *
+from code_scripts.silver.numeric_data.minio_funcs import *
+from code_scripts.silver.numeric_data.reuse_function import *
+from code_scripts.silver.numeric_data.Load_data_to_table import *
 
 # HÀM MỚI: CHUẨN HÓA VÀ MAPPING PRODUCT_NAME THEO YÊU CẦU
 NGUYEN_CHIEC_PATTERN = re.compile(
@@ -65,6 +65,7 @@ def clean_and_mapping_products(df: pd.DataFrame) -> pd.DataFrame:
         'Nguyên phụ liệu dệt may, da giầy': 'Nguyên phụ liệu dệt, may, giày dép',
         'Nguyên phụ liệu dệt, may, da, giày': 'Nguyên phụ liệu dệt, may, giày dép',
         'Nguyên PL dệt, may, giày dép': 'Nguyên phụ liệu dệt, may, giày dép',
+        'Ô tô(*)': 'Ô tô',
         'Ô tô(*)': 'Ô tô',
         'Phương tiện vận tải khác và phụ tùng': 'Phương tiện vận tải và phụ tùng',
         'Phương tiện vận tải khác và PT': 'Phương tiện vận tải và phụ tùng',

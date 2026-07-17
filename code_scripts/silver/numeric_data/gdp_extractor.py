@@ -1,8 +1,8 @@
 import pyspark.pandas as pd
 import numpy as np
-from minio_funcs import *
-from reuse_function import *
-from Load_data_to_table import *
+from code_scripts.silver.numeric_data.minio_funcs import *
+from code_scripts.silver.numeric_data.reuse_function import *
+from code_scripts.silver.numeric_data.Load_data_to_table import *
 
 # HÀM BỔ TRỢ: Chuẩn hóa sub_sector theo yêu cầu của hệ thống
 def clean_sub_sector(df: pd.DataFrame) -> pd.DataFrame:

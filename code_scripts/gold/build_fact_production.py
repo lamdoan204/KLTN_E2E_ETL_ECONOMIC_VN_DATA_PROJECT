@@ -32,12 +32,12 @@ def get_spark() -> SparkSession:
 spark = get_spark()
 
 def build_fact_production_output():
-    
+
     industry_product = spark.table('silver.industry_product')
     livestock = spark.table('silver.livestock')
     aquatic = spark.table('silver.aquatic_products')
     forestry = spark.table('silver.forestry')
-    
+
     dim_time = spark.table('gold.dim_time')
     dim_product = spark.table('gold.dim_product')
 
@@ -45,7 +45,7 @@ def build_fact_production_output():
         industry_product
         .select(
             lit("Industry Product").alias("product_category"),
-            lit('not available').alias('product_type'), 
+            lit('not available').alias('product_type'),
             col("product_name"),
             col("value"),
             col("unit"),
@@ -100,24 +100,30 @@ def build_fact_production_output():
         .unionByName(forestry)
         .unionByName(aquatic)
     )
-    
-    
+
+    # ---- Join dim_time: chi lay them time_key ----
     product = (
         product.alias('p')
         .join(
             dim_time.alias('t'),
-            (col('p.year') == col('t.year')) &
-            (col('p.quarter') == col('t.quarter')) & 
-            (col('p.month').isNull()) |
-            (col('p.year') == col('t.year')) &
-            (col('p.month') == col('t.month')),
+            (
+                (col('p.year') == col('t.year')) &
+                (col('p.quarter') == col('t.quarter')) &
+                (col('p.month').isNull())
+            ) |
+            (
+                (col('p.year') == col('t.year')) &
+                (col('p.month') == col('t.month'))
+            ),
             "left"
-        ).select(
-        "p.*",
-        "t.time_key"
+        )
+        .select(
+            "p.*",
+            "t.time_key"
         )
     )
-    
+
+    # ---- Join dim_product: chi lay them product_key ----
     product = (
         product.alias('p')
         .join(
@@ -127,18 +133,23 @@ def build_fact_production_output():
             (col('p.product_type') == col('t.product_type')),
             "left"
         )
+        .select(
+            "p.*",
+            "t.product_key"
+        )
     )
+
     cur = product.alias("c")
     pre_q = product.alias("pq")
     pre_y = product.alias("py")
-    
+
     result = (
         cur
         .join(
             pre_q,
             (col("c.product_key") == col("pq.product_key")) &
             (
-                (
+                ((
                     (col("c.year") == col("pq.year")) &
                     (col("c.quarter") == col("pq.quarter") + 1)
                 ) |
@@ -146,7 +157,7 @@ def build_fact_production_output():
                     (col("c.year") == col("pq.year") + 1) &
                     (col("c.quarter") == 1) &
                     (col("pq.quarter") == 4)
-                )
+                )) & (col('c.unit') == col('pq.unit'))
             ),
             "left"
         )
@@ -154,7 +165,8 @@ def build_fact_production_output():
             pre_y,
             (col("c.product_key") == col("py.product_key")) &
             (col("c.year") == col("py.year") + 1) &
-            (col("c.quarter") == col("py.quarter")),
+            (col("c.quarter") == col("py.quarter")) & 
+            (col('c.unit') == col('py.unit')),
             "left"
         )
         .select(
@@ -163,6 +175,7 @@ def build_fact_production_output():
             col("py.value").alias("pre_year_value")
         )
     )
+
     result = (
         result
         .withColumn(
@@ -188,27 +201,38 @@ def build_fact_production_output():
             )
         )
     )
-    
-    w_year = Window.partitionBy("year", 'quarter')
+
+    # ---- Tinh product_share_pct ----
+    # - Industry Product: cung 1 don vi do (vd: chi so san xuat cong nghiep)
+    #   => partition theo nam + quy la du de tinh ty trong.
+    # - Cac category con lai (Livestock/Forestry/Aquatic): moi product_name
+    #   co the co unit khac nhau (tan, con, m3, ...) => neu cong chung roi
+    #   chia ty trong se sai don vi. Can partition them theo product_category
+    #   va unit de chi so sanh cac gia tri CUNG don vi voi nhau.
+    w_industry = Window.partitionBy("year", "quarter")
+    w_other = Window.partitionBy("year", "product_name", "product_category", 'unit')
 
     result = (
         result
+        .withColumn("total_value_industry", sum("value").over(w_industry))
+        .withColumn("total_value_other", sum("value").over(w_other))
         .withColumn(
             "total_value",
-            sum("value").over(w_year)
+            when(
+                col("product_category") == "Industry Product",
+                col("total_value_industry")
+            ).otherwise(col("total_value_other"))
         )
         .withColumn(
             "product_share_pct",
-            round(
-                col("value") / col("total_value") * 100,
-                3
+            when(
+                col("total_value") > 0,
+                round(col("value") / col("total_value") * 100, 3)
             )
         )
-        .drop("total_value")
+        .drop("total_value_industry", "total_value_other", "total_value")
     )
-   
-    
-  
+
     result = (
         result.select(
             col("time_key").cast("int").alias("time_key"),
@@ -237,11 +261,11 @@ def build_fact_production_output():
             ]
         )
     )
-   
-    result.write\
-        .format('delta')\
-            .mode('overwrite')\
-                .save('s3a://gold/fact_production_output')
+
+    result.write \
+        .format('delta') \
+        .mode('overwrite') \
+        .save('s3a://gold/fact_production_output')
     result.show(100)
     
 

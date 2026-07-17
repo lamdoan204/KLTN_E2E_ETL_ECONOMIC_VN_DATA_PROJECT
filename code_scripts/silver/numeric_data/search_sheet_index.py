@@ -1,5 +1,5 @@
 import pandas as pd
-from reuse_function import *
+from code_scripts.silver.numeric_data.reuse_function import *
 
 
 CONGNGHIEP_TITLE = 'motsosanphamchuyeucuanganhcongnghiep'

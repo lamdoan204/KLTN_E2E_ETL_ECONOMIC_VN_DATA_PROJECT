@@ -1,15 +1,15 @@
 import pandas as pd
 import gc
 
-from minio_funcs import *
-from reuse_function import *
-from Load_data_to_table import *
+from code_scripts.silver.numeric_data.minio_funcs import *
+from code_scripts.silver.numeric_data.reuse_function import *
+from code_scripts.silver.numeric_data.Load_data_to_table import *
 
-from gdp_extractor import extract_data_from_GDP
-from international_ecommerce_extractor import extract_data_from_International_Ecommerce
-from investment_extractor import extract_data_from_Invesment
-from investment_by_sector_extractor import extract_data_from_Investment_by_Sector
-from product_productivity_extractor import extract_data_for_Product_Productivity_fact
+from code_scripts.silver.numeric_data.gdp_extractor import extract_data_from_GDP
+from code_scripts.silver.numeric_data.international_ecommerce_extractor import extract_data_from_International_Ecommerce
+from code_scripts.silver.numeric_data.investment_extractor import extract_data_from_Invesment
+from code_scripts.silver.numeric_data.investment_by_sector_extractor import extract_data_from_Investment_by_Sector
+from code_scripts.silver.numeric_data.product_productivity_extractor import extract_data_for_Product_Productivity_fact
 
 def main_func():
     # lấy tất cả các đường dẫn trong bronze

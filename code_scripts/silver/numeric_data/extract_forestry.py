@@ -1,6 +1,6 @@
 import pandas as pd
-from Load_data_to_table import *
-from search_sheet_index import search_start_and_end_index, LAMNGHIEP_TITLE
+from code_scripts.silver.numeric_data.Load_data_to_table import *
+from code_scripts.silver.numeric_data.search_sheet_index import search_start_and_end_index, LAMNGHIEP_TITLE
 
 # Định nghĩa từ điển đơn vị tính chuẩn của Tổng cục Thống kê cho ngành Lâm nghiệp
 # Đây là "tấm lưới bảo hiểm" giúp file 2018 không bao giờ bị map sai đơn vị
@@ -79,7 +79,6 @@ def insert_forestry(excel_file, all_sheets, sheet_index: int, year: int, quarter
     lamnghiep_sheet['unit'] = lamnghiep_sheet['forestry_indicator'].map(final_lookup).fillna('Ha')
 
     # --- LÀM TRÒN VÀ LỌC DỮ LIỆU SỐ ---
-    lamnghiep_sheet['value'] = pd.to_numeric(lamnghiep_sheet['value'], errors='coerce').round(3)
     lamnghiep_sheet = lamnghiep_sheet.dropna(subset=['value'])
     
     lamnghiep_sheet = lamnghiep_sheet.drop_duplicates()

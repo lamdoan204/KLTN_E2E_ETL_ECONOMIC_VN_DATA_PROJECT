@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
-from Load_data_to_table import *
-from search_sheet_index import search_start_and_end_index, HANGNAM_TITLE
+from code_scripts.silver.numeric_data.Load_data_to_table import *
+from code_scripts.silver.numeric_data.search_sheet_index import search_start_and_end_index, HANGNAM_TITLE
 
 
 def insert_annual_crops(excel_file, all_sheets, sheet_index: int, year: int, quarter: int):
@@ -73,8 +73,6 @@ def insert_annual_crops(excel_file, all_sheets, sheet_index: int, year: int, qua
         'production_unit': unit_pivot['production'],
     }).reset_index(drop=True)
     
-    for col in ['area', 'yield', 'production']:
-        result[col] = pd.to_numeric(result[col], errors='coerce').round(3)
     result = result.drop_duplicates()
     result['year']      = year
     result['ingest_at'] = pd.Timestamp.now()

@@ -1,5 +1,5 @@
 import pandas as pd
-from Load_data_to_table import *
+from code_scripts.silver.numeric_data.Load_data_to_table import *
 
 # Giả định bạn đã import hàm này
 # from Load_data_to_table import insert_df_to_table_silver_layer

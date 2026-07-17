@@ -1,8 +1,8 @@
 import pandas as pd
 
-from minio_funcs import *
-from reuse_function import *
-from Load_data_to_table import *
+from code_scripts.silver.numeric_data.minio_funcs import *
+from code_scripts.silver.numeric_data.reuse_function import *
+from code_scripts.silver.numeric_data.Load_data_to_table import *
 
 
 INVESTMENT_NAME_NORMALIZATION = {
@@ -81,7 +81,6 @@ def extract_data_from_Invesment(excel_file: pd.ExcelFile, year, month):
         vdt_sheet = vdt_sheet.dropna(subset=['investment_name', 'value'])
         vdt_sheet = normalize_investment_name(vdt_sheet)
         
-        vdt_sheet['value'] = pd.to_numeric(vdt_sheet['value'], errors='coerce').round(3)
         vdt_sheet = vdt_sheet.drop_duplicates()
         insert_df_to_table_silver_layer(vdt_sheet, 'investment', year, quarter)
     except Exception as e:

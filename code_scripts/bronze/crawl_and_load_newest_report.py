@@ -38,23 +38,39 @@ def load_file_to_Bronze(bucket_name, object_name, local_file_path):
         print(f'HAVE AN ERROR WHEN LOAD FILE TO {bucket_name} !!!!!!!!!!')
         print(e)
 
-def clear_prefix_in_minio(bucket_name, prefix):
-        try:
-            objects = client.list_objects(bucket_name, prefix=prefix, recursive=True)
-            object_names = [obj.object_name for obj in objects]
-    
-            if not object_names:
-                print(f'KHÔNG CÓ FILE NÀO TRONG {bucket_name}/{prefix} ĐỂ XÓA')
-                return
-    
-            for object_name in object_names:
-                client.remove_object(bucket_name, object_name)
-                print(f'ĐÃ XÓA: {bucket_name}/{object_name}')
-    
-            print(f'ĐÃ DỌN SẠCH PREFIX {bucket_name}/{prefix}')
-        except Exception as e:
-            print(f'HAVE AN ERROR WHEN CLEAR PREFIX {bucket_name}/{prefix} !!!!!!!!!!')
-            print(e)
+from minio.commonconfig import CopySource
+
+def backup_and_clear_prefix(bucket_name, source_prefix, backup_prefix):
+    try:
+        objects = client.list_objects(bucket_name, prefix=source_prefix, recursive=True)
+        object_names = [obj.object_name for obj in objects]
+
+        if not object_names:
+            print(f"KHÔNG CÓ FILE NÀO TRONG {bucket_name}/{source_prefix}")
+            return
+
+        # Copy từng object
+        for object_name in object_names:
+            # Tạo đường dẫn mới
+            backup_name = object_name.replace(source_prefix, backup_prefix, 1)
+
+            client.copy_object(
+                bucket_name,
+                backup_name,
+                CopySource(bucket_name, object_name)
+            )
+
+            print(f"ĐÃ BACKUP: {object_name} -> {backup_name}")
+
+        # Sau khi copy thành công thì xóa
+        for object_name in object_names:
+            client.remove_object(bucket_name, object_name)
+            print(f"ĐÃ XÓA: {object_name}")
+
+        print("HOÀN THÀNH BACKUP VÀ XÓA")
+
+    except Exception as e:
+        print(e)
 
 def get_month_from_title(title):
     """
@@ -175,7 +191,7 @@ def craw_and_load_latest_report_economic_excel_file_to_bronze():
         upload_path = convert_xls_to_xlsx_file(local_path, output_dir)
 
         upload_name = os.path.basename(upload_path)
-    clear_prefix_in_minio('bronze', 'newest_economic_report_excel_file' )
+    backup_and_clear_prefix('bronze', 'newest_economic_report_excel_file',  'economic_report_excel_files')
     # upload MinIO
     load_file_to_Bronze(
         bucket_name='bronze',

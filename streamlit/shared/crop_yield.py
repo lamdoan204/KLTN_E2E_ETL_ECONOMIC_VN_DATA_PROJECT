@@ -56,7 +56,7 @@ DISCRETE_PALETTE = [
 
 CHART_PLOT_BG = "#07063C"
 CHART_PAPER_BG = "#07063C"
-CHART_FONT_COLOR = "#1A1A1A"
+CHART_FONT_COLOR = "#FFFFFF"
 
 
 # ====================================================================
@@ -264,8 +264,8 @@ def load_data() -> pd.DataFrame:
             dim_time["quarter"],
             dim_crop["crop_name"],
             dim_crop["crop_category"],
-            fact["production_unit"],
             fact["yield_unit"],
+            fact["productivity_unit"],
             fact["area_unit"],
             fact["area"],
             fact["yield_value"],
@@ -273,8 +273,8 @@ def load_data() -> pd.DataFrame:
             fact["area_pre_year"],
             fact["yield_pre_year"],
             fact["productivity_pre_year"],
-            fact["yield_yoy_growth_rate"],
-            fact["yield_share_pct"],
+            fact["productivity_yoy_growth_rate"],
+            fact["productivity_share_pct"],
         )
     )
 
@@ -306,8 +306,8 @@ def get_filter_options(df: pd.DataFrame, selected_categories: list[Any] | None =
             "year": [],
             "crop_category": [],
             "crop_name": [],
-            "production_unit": [],
             "yield_unit": [],
+            "productivity_unit": [],
             "area_unit": [],
         }
 
@@ -319,8 +319,8 @@ def get_filter_options(df: pd.DataFrame, selected_categories: list[Any] | None =
         "year": sorted(df["year"].dropna().unique().tolist()),
         "crop_category": sorted(df["crop_category"].dropna().unique().tolist()),
         "crop_name": sorted(crop_name_pool["crop_name"].dropna().unique().tolist()),
-        "production_unit": sorted(df["production_unit"].dropna().unique().tolist()),
         "yield_unit": sorted(df["yield_unit"].dropna().unique().tolist()),
+        "productivity_unit": sorted(df["productivity_unit"].dropna().unique().tolist()),
         "area_unit": sorted(df["area_unit"].dropna().unique().tolist()),
     }
 
@@ -330,8 +330,8 @@ def apply_filters(
     years: list[Any],
     crop_categories: list[Any],
     crop_names: list[Any],
-    production_units: list[Any],
     yield_units: list[Any],
+    productivity_unit: list[Any],
     area_units: list[Any],
 ) -> pd.DataFrame:
     """Áp dụng các bộ lọc toàn cục lên DataFrame.
@@ -344,8 +344,8 @@ def apply_filters(
         years: Danh sách năm được chọn.
         crop_categories: Danh sách Crop Category được chọn.
         crop_names: Danh sách Crop Name được chọn.
-        production_units: Danh sách đơn vị sản lượng được chọn.
-        yield_units: Danh sách đơn vị năng suất được chọn.
+        yield_units: Danh sách đơn vị sản lượng được chọn.
+        productivity_unit: Danh sách đơn vị năng suất được chọn.
         area_units: Danh sách đơn vị diện tích được chọn.
 
     Returns:
@@ -362,10 +362,10 @@ def apply_filters(
         filtered = filtered[filtered["crop_category"].isin(crop_categories)]
     if crop_names:
         filtered = filtered[filtered["crop_name"].isin(crop_names)]
-    if production_units:
-        filtered = filtered[filtered["production_unit"].isin(production_units)]
     if yield_units:
         filtered = filtered[filtered["yield_unit"].isin(yield_units)]
+    if productivity_unit:
+        filtered = filtered[filtered["productivity_unit"].isin(productivity_unit)]
     if area_units:
         filtered = filtered[filtered["area_unit"].isin(area_units)]
 
@@ -399,7 +399,7 @@ def render_filters(df: pd.DataFrame) -> pd.DataFrame:
         years = st.multiselect("Year", base_options["year"], default=[], key="crop_filter_year")
     with col2:
         crop_categories = st.multiselect(
-            "Crop Category", base_options["crop_category"], default=[], key="crop_filter_category"
+            "Loại cây trồng", base_options["crop_category"], default=[], key="crop_filter_category"
         )
 
     # Crop Name phụ thuộc Crop Category đã chọn ở trên.
@@ -407,25 +407,25 @@ def render_filters(df: pd.DataFrame) -> pd.DataFrame:
 
     with col3:
         crop_names = st.multiselect(
-            "Crop Name", dependent_options["crop_name"], default=[], key="crop_filter_name"
+            "Tên cây trồng", dependent_options["crop_name"], default=[], key="crop_filter_name"
         )
     with col4:
-        production_units = st.multiselect(
-            "Production Unit", base_options["production_unit"], default=[], key="crop_filter_production_unit"
+        yield_units = st.multiselect(
+            "Đơn vị sản lượng", base_options["yield_unit"], default=[], key="crop_filter_production_unit"
         )
     with col5:
-        yield_units = st.multiselect(
-            "Yield Unit", base_options["yield_unit"], default=[], key="crop_filter_yield_unit"
+        productivity_unit = st.multiselect(
+            "Đơn vị năng suất", base_options["productivity_unit"], default=[], key="crop_filter_yield_unit"
         )
     with col6:
         area_units = st.multiselect(
-            "Area Unit", base_options["area_unit"], default=[], key="crop_filter_area_unit"
+            "Đơn vị diện tích", base_options["area_unit"], default=[], key="crop_filter_area_unit"
         )
 
     st.markdown("</div>", unsafe_allow_html=True)
 
     return apply_filters(
-        df, years, crop_categories, crop_names, production_units, yield_units, area_units
+        df, years, crop_categories, crop_names, yield_units, productivity_unit, area_units
     )
 
 
@@ -494,24 +494,31 @@ def render_kpis(df: pd.DataFrame) -> None:
     total_production = df["yield_value"].sum()
     total_area = df["area"].sum()
     avg_productivity = df["productivity"].mean()
-    avg_yoy_growth = df["yield_yoy_growth_rate"].mean()
-    largest_share = df["yield_share_pct"].max()
+    avg_yoy_growth = df["productivity_yoy_growth_rate"].mean()
+    largest_share = df["productivity_share_pct"].mean()
 
-    top_producing_crop = "N/A"
-    if not df["yield_value"].dropna().empty:
-        top_row = df.loc[df.groupby("crop_name")["yield_value"].transform("sum").idxmax()]
-        top_producing_crop = str(top_row["crop_name"])
+    grouped = (
+    df.groupby(["crop_category", "crop_name"], as_index=False)
+        .agg(
+            productivity=("productivity", "sum"),
+            area=("area", "sum"),
+            yield_value=("yield_value", "sum"),
+            productivity_share_pct=("productivity_share_pct", "mean"),
+        )
+    )
+    top_row = grouped.loc[grouped["productivity"].idxmax()]
 
-    growth_class = "kpi-positive" if avg_yoy_growth >= 0 else "kpi-negative"
-
+    top_producing_crop = top_row["crop_name"]
+    largest_share_top = top_row["productivity_share_pct"]
     cols = st.columns(6)
     kpi_data = [
-        ("Total Production", _format_number(total_production), ""),
-        ("Total Area", _format_number(total_area), ""),
-        ("Average Productivity", _format_number(avg_productivity), ""),
-        ("Average YoY Growth", _format_percent(avg_yoy_growth), growth_class),
-        ("Largest Crop Share", _format_percent(largest_share), ""),
-        ("Top Producing Crop", top_producing_crop, "kpi-positive"),
+        ("Tổng sản lượng (Nghìn tấn)", _format_number(total_production), ""),
+        ("Tổng diện tích (Nghìn Ha)", _format_number(total_area), ""),
+        ("Trung bình năng suất (Tạ/Ha)", _format_number(avg_productivity), ""),
+        ("Trung bình phát triển năng suất qua từng năm", _format_percent(avg_yoy_growth),""),
+        ("Sản phẩm năng suất cao nhất", top_producing_crop, "kpi-positive"),
+        ("Tỷ trọng năng suất cây trồng lớn nhất", _format_percent(largest_share_top), ""),
+        
     ]
 
     for col, (label, value, css_class) in zip(cols, kpi_data):
@@ -593,8 +600,12 @@ def chart_production_trend(df: pd.DataFrame) -> go.Figure:
 
 def chart_productivity_trend(df: pd.DataFrame) -> go.Figure:
     """Vẽ Line Chart: Average Productivity theo Year."""
-    grouped = df.groupby("year", as_index=False).agg(productivity=("productivity", "mean")).sort_values("year")
-
+    grouped = (
+        df[df["productivity"] != 0]
+        .groupby("year", as_index=False)
+        .agg(productivity=("productivity", "mean"))
+        .sort_values("year")
+    )
     fig = go.Figure()
     fig.add_trace(
         go.Scatter(
@@ -632,15 +643,30 @@ def chart_production_by_category(df: pd.DataFrame) -> go.Figure:
 
 def chart_crop_share(df: pd.DataFrame) -> go.Figure:
     """Vẽ Donut Chart: Crop Share (Yield Share) theo Crop Category."""
-    grouped = df.groupby("crop_category", as_index=False).agg(yield_share_pct=("yield_share_pct", "mean"))
+    grouped = (
+    df.groupby("crop_category", as_index=False)
+    .agg(
+        yield_value=("yield_value", "sum"),
+        yield_unit=("yield_unit", "first"),
+    )
+    )
 
     fig = px.pie(
         grouped,
         names="crop_category",
-        values="yield_share_pct",
+        values="yield_value",
         hole=0.55,
         color_discrete_sequence=DISCRETE_PALETTE,
         title="Crop Share",
+        custom_data=["yield_unit"],
+    )
+
+    fig.update_traces(
+        hovertemplate="""
+    <b>%{label}</b><br>
+    Sản lượng: %{value:,.0f} %{customdata[0]}<br>
+    Tỷ trọng: %{percent}<extra></extra>
+    """
     )
     fig.update_traces(textposition="inside", textinfo="percent+label")
     return _apply_chart_theme(fig)
@@ -650,7 +676,10 @@ def chart_top10_production(df: pd.DataFrame) -> go.Figure:
     """Vẽ Horizontal Bar: Top 10 Crop theo Production (Yield Value)."""
     grouped = (
         df.groupby("crop_name", as_index=False)
-        .agg(yield_value=("yield_value", "sum"))
+        .agg(
+            yield_value=("yield_value", "sum"),
+            yield_unit=("yield_unit", "first"),
+        )
         .sort_values("yield_value", ascending=False)
         .head(10)
         .sort_values("yield_value")
@@ -663,7 +692,21 @@ def chart_top10_production(df: pd.DataFrame) -> go.Figure:
         orientation="h",
         color_discrete_sequence=[COLOR_ACCENT],
         title="Top 10 Production",
-        labels={"yield_value": "Production", "crop_name": "Crop"},
+        labels={
+            "yield_value": "Production",
+            "crop_name": "Crop",
+        },
+        custom_data=["yield_unit"],
+    )
+
+    fig.update_traces(
+        texttemplate="%{x:,.0f}",
+        textposition="outside",
+        hovertemplate="""
+    <b>%{y}</b><br>
+    sản lượng: %{x:,.0f} %{customdata[0]}
+    <extra></extra>
+    """
     )
     return _apply_chart_theme(fig)
 
@@ -672,8 +715,16 @@ def chart_top10_productivity(df: pd.DataFrame) -> go.Figure:
     """Vẽ Horizontal Bar: Top 10 Crop theo Productivity."""
     grouped = (
         df.groupby("crop_name", as_index=False)
-        .agg(productivity=("productivity", "mean"))
-        .sort_values("productivity", ascending=False)
+        .agg(
+            productivity=("productivity", "mean"),
+            productivity_unit=("productivity_unit", "first"),
+        )
+    )
+
+    grouped["productivity"] = grouped["productivity"].round(2)
+
+    grouped = (
+        grouped.sort_values("productivity", ascending=False)
         .head(10)
         .sort_values("productivity")
     )
@@ -685,28 +736,94 @@ def chart_top10_productivity(df: pd.DataFrame) -> go.Figure:
         orientation="h",
         color="productivity",
         color_continuous_scale=[COLOR_NEGATIVE, COLOR_ACCENT, COLOR_POSITIVE],
-        title="Top 10 Productivity",
-        labels={"productivity": "Productivity", "crop_name": "Crop"},
+        custom_data=["productivity_unit"],
     )
+
     fig.update_coloraxes(showscale=False)
+
+    fig.update_traces(
+        texttemplate="%{x:.2f} %{customdata[0]}",
+        textposition="outside",
+        hovertemplate="""
+    <b>%{y}</b><br>
+    Productivity: %{x:.2f} %{customdata[0]}
+    <extra></extra>
+    """
+    )
     return _apply_chart_theme(fig)
 
 
 def chart_treemap(df: pd.DataFrame) -> go.Figure:
-    """Vẽ Treemap: Crop Category -> Crop Name -> Yield Share."""
+    """Vẽ Treemap: Crop Category -> Crop Name (size = Yield)."""
+
     grouped = (
-        df.groupby(["crop_category", "crop_name"], as_index=False)
-        .agg(yield_share_pct=("yield_share_pct", "sum"))
+        df.groupby(
+            ["crop_category", "crop_name"], as_index=False
+        )
+        .agg(
+            productivity=("productivity", "mean"),
+            area=("area", "sum"),
+            yield_value=("yield_value", "sum"),
+            productivity_unit=("productivity_unit", "first"),
+            area_unit=("area_unit", "first"),
+            yield_unit=("yield_unit", "first"),
+        )
     )
-    grouped = grouped[grouped["yield_share_pct"] > 0]
+
+    # Loại bỏ dữ liệu không hợp lệ
+    grouped = grouped[grouped["yield_value"] > 0].copy()
+
+    # Sắp xếp theo sản lượng giảm dần trong từng crop_category
+    grouped = grouped.sort_values(
+        ["crop_category", "yield_value"],
+        ascending=[True, False],
+        kind="stable",
+    )
+
+    # Tính tỷ trọng sản lượng trong từng crop_category
+    grouped["yield_pct"] = (
+        grouped["yield_value"]
+        / grouped.groupby("crop_category")["yield_value"].transform("sum")
+        * 100
+    )
 
     fig = px.treemap(
         grouped,
         path=["crop_category", "crop_name"],
-        values="yield_share_pct",
-        color="crop_category",
-        color_discrete_sequence=DISCRETE_PALETTE,
-        title="Crop Structure (Treemap)",
+        values="yield_value",
+        color="yield_pct",
+        color_continuous_scale="Viridis",
+        custom_data=[
+            "yield_value",
+            "yield_unit",
+            "yield_pct",
+            "productivity",
+            "productivity_unit",
+            "area",
+            "area_unit",
+        ],
+    )
+
+    fig.update_traces(
+        texttemplate="<b>%{label}</b><br>%{customdata[2]:.1f}%",
+        hovertemplate="""
+    <b>%{label}</b><br>
+    Crop Category: %{parent}<br><br>
+
+    <b>Yield</b>: %{customdata[0]:,.2f} %{customdata[1]}<br>
+    <b>Share in Category</b>: %{customdata[2]:.2f}%<br>
+    <b>Productivity</b>: %{customdata[3]:,.2f} %{customdata[4]}<br>
+    <b>Area</b>: %{customdata[5]:,.2f} %{customdata[6]}<br>
+
+    <extra></extra>
+    """
+    )
+
+    fig.update_layout(
+        coloraxis_colorbar=dict(
+            title="Yield Share (%)"
+        ),
+        margin=dict(t=40, l=10, r=10, b=10),
     )
     return _apply_chart_theme(fig, height=480)
 
@@ -742,7 +859,7 @@ def chart_growth_heatmap(df: pd.DataFrame) -> go.Figure:
     pivot = df.pivot_table(
         index="crop_name",
         columns="year",
-        values="yield_yoy_growth_rate",
+        values="productivity_yoy_growth_rate",
         aggfunc="mean",
     )
 
@@ -902,18 +1019,18 @@ def render_drilldown_section(df: pd.DataFrame) -> None:
             production=("yield_value", "sum"),
             area=("area", "sum"),
             productivity=("productivity", "mean"),
-            yield_yoy_growth_rate=("yield_yoy_growth_rate", "mean"),
-            yield_share_pct=("yield_share_pct", "mean"),
+            productivity_yoy_growth_rate=("productivity_yoy_growth_rate", "mean"),
+            productivity_share_pct=("productivity_share_pct", "mean"),
         )
-        .sort_values("yield_share_pct", ascending=False)
+        .sort_values("productivity_share_pct", ascending=False)
         .rename(
             columns={
                 "crop_name": "Crop Name",
                 "production": "Production",
                 "area": "Area",
                 "productivity": "Productivity",
-                "yield_yoy_growth_rate": "Growth (%)",
-                "yield_share_pct": "Yield Share (%)",
+                "productivity_yoy_growth_rate": "Growth (%)",
+                "productivity_share_pct": "Yield Share (%)",
             }
         )
     )
@@ -967,6 +1084,6 @@ def render_dashboard() -> None:
     render_trend_section(filtered_df)
     render_structure_section(filtered_df)
     render_ranking_section(filtered_df)
-    render_analysis_section(filtered_df)
-    render_comparison_section(filtered_df)
+    # render_analysis_section(filtered_df)
+    # render_comparison_section(filtered_df)
     render_drilldown_section(filtered_df)

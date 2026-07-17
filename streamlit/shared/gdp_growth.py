@@ -307,7 +307,6 @@ def apply_filters(
     quarters: list[Any],
     sectors: list[Any],
     sub_sectors: list[Any],
-    units: list[Any],
 ) -> pd.DataFrame:
     """Áp dụng các bộ lọc toàn cục lên DataFrame.
 
@@ -338,8 +337,6 @@ def apply_filters(
         filtered = filtered[filtered["sector_name"].isin(sectors)]
     if sub_sectors:
         filtered = filtered[filtered["sub_sector_name"].isin(sub_sectors)]
-    if units:
-        filtered = filtered[filtered["unit"].isin(units)]
 
     return filtered
 
@@ -360,7 +357,7 @@ def render_filters(df: pd.DataFrame) -> pd.DataFrame:
     options = get_filter_options(df)
 
     st.markdown('<div class="gdp-card">', unsafe_allow_html=True)
-    col1, col2, col3, col4, col5 = st.columns(5)
+    col1, col2, col3, col4 = st.columns(4)
 
     with col1:
         years = st.multiselect("Year", options["year"], default=[])
@@ -370,12 +367,11 @@ def render_filters(df: pd.DataFrame) -> pd.DataFrame:
         sectors = st.multiselect("Sector", options["sector"], default=[])
     with col4:
         sub_sectors = st.multiselect("Sub-sector", options["sub_sector"], default=[])
-    with col5:
-        units = st.multiselect("Unit", options["unit"], default=[])
+    
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-    return apply_filters(df, years, quarters, sectors, sub_sectors, units)
+    return apply_filters(df, years, quarters, sectors, sub_sectors)
 
 
 # ====================================================================
@@ -441,26 +437,48 @@ def render_kpis(df: pd.DataFrame) -> None:
 
     market_gdp = df["market_value"].sum()
     real_gdp = df["constant_value"].sum()
-    avg_qoq = df["real_qoq_growth_rate"].mean()
-    avg_yoy = df["real_yoy_growth_rate"].mean()
+    avg_qoq = df["market_qoq_growth_rate"].mean()
+    avg_yoy = df["market_yoy_growth_rate"].mean()
     avg_gdp_share = df["gdp_share_pct"].mean()
 
     top_growing = "N/A"
+    # if not df["real_yoy_growth_rate"].dropna().empty:
+    #     top_row = df.loc[df["real_yoy_growth_rate"].mean().idxmax()]
+    #     top_growing = f"{top_row['sub_sector_name']} ({top_row['real_yoy_growth_rate'].mean():.2f}%)"
+    #     top_gdp_share = top_row["gdp_share_pct"].mean()
     if not df["real_yoy_growth_rate"].dropna().empty:
-        top_row = df.loc[df["real_yoy_growth_rate"].idxmax()]
-        top_growing = f"{top_row['sub_sector_name']} ({top_row['real_yoy_growth_rate']:.2f}%)"
+       summary = (
+        df.groupby("sub_sector_name", as_index=False)
+        .agg(
+            real_yoy_growth_rate=("market_yoy_growth_rate", "mean"),
+            market_value=("market_value", "sum")
+        )
+    )
 
+    top_row = summary.loc[summary["real_yoy_growth_rate"].idxmax()]
+
+    top_growing = (
+        f"{top_row['sub_sector_name']} "
+        f"({top_row['real_yoy_growth_rate']:.2f}%)"
+    )
+
+    top_gdp_share = (
+        top_row["market_value"] / summary["market_value"].sum() * 100
+        if summary["market_value"].sum() > 0
+        else 0
+    )
     qoq_class = "kpi-positive" if avg_qoq >= 0 else "kpi-negative"
     yoy_class = "kpi-positive" if avg_yoy >= 0 else "kpi-negative"
 
     cols = st.columns(6)
     kpi_data = [
-        ("Market GDP", _format_number(market_gdp), ""),
-        ("Real GDP", _format_number(real_gdp), ""),
-        ("QoQ Growth", _format_percent(avg_qoq), qoq_class),
-        ("YoY Growth", _format_percent(avg_yoy), yoy_class),
-        ("GDP Share", _format_percent(avg_gdp_share), ""),
+        ("Market GDP (Tỷ đồng)", _format_number(market_gdp), ""),
+        ("2010 GDP (Tỷ đồng)", _format_number(real_gdp), ""),
+        ("Avg QoQ Growth (%)", _format_percent(avg_qoq), qoq_class),
+        ("Avg YoY Growth (%)", _format_percent(avg_yoy), yoy_class),
         ("Top Growing Sub-sector", top_growing, "kpi-positive"),
+        ("GDP Share (%)", _format_percent(top_gdp_share), ""),
+        
     ]
 
     for col, (label, value, css_class) in zip(cols, kpi_data):
@@ -541,8 +559,6 @@ def chart_growth_trend(df: pd.DataFrame) -> go.Figure:
         .agg(
             market_qoq_growth_rate=("market_qoq_growth_rate", "mean"),
             market_yoy_growth_rate=("market_yoy_growth_rate", "mean"),
-            real_qoq_growth_rate=("real_qoq_growth_rate", "mean"),
-            real_yoy_growth_rate=("real_yoy_growth_rate", "mean"),
         )
         .sort_values(["year", "quarter"])
     )
@@ -551,8 +567,6 @@ def chart_growth_trend(df: pd.DataFrame) -> go.Figure:
     series_config = [
         ("market_qoq_growth_rate", "Market QoQ", COLOR_ACCENT),
         ("market_yoy_growth_rate", "Market YoY", COLOR_POSITIVE),
-        ("real_qoq_growth_rate", "Real QoQ", COLOR_NEGATIVE),
-        ("real_yoy_growth_rate", "Real YoY", "#F5B041"),
     ]
 
     fig = go.Figure()
@@ -594,13 +608,13 @@ def chart_gdp_by_sector(df: pd.DataFrame) -> go.Figure:
 
 def chart_sector_share(df: pd.DataFrame) -> go.Figure:
     """Vẽ Donut Chart: Sector Share."""
-    grouped = df.groupby("sector_name", as_index=False).agg(gdp_share_pct=("gdp_share_pct", "mean"))
+    grouped = df.groupby("sector_name", as_index=False).agg(market_value=("market_value", "sum"))
 
     fig = px.pie(
         grouped,
         names="sector_name",
-        values="gdp_share_pct",
-        hole=0.55,
+        values="market_value",
+        hole=0.40,
         color_discrete_sequence=DISCRETE_PALETTE,
         title="Sector Share",
     )
@@ -658,19 +672,37 @@ def chart_treemap(df: pd.DataFrame) -> go.Figure:
     """Vẽ Treemap: Sector -> Sub-sector -> GDP Share."""
     grouped = (
         df.groupby(["sector_name", "sub_sector_name"], as_index=False)
-        .agg(gdp_share_pct=("gdp_share_pct", "sum"))
+        .agg(market_value=("market_value", "sum"))
     )
-    grouped = grouped[grouped["gdp_share_pct"] > 0]
+
+    grouped = grouped[grouped["market_value"] > 0]
+
+    # Tổng market value của từng sector
+    grouped["sector_total"] = grouped.groupby("sector_name")["market_value"].transform("sum")
+
+    # % của sub_sector trong sector
+    grouped["sector_share_pct"] = (
+        grouped["market_value"] / grouped["sector_total"] * 100
+    )
 
     fig = px.treemap(
         grouped,
         path=["sector_name", "sub_sector_name"],
-        values="gdp_share_pct",
+        values="market_value",
         color="sector_name",
         color_discrete_sequence=DISCRETE_PALETTE,
+        custom_data=["sector_share_pct"],
         title="Sector Structure (Treemap)",
     )
-    return _apply_chart_theme(fig, height=480)
+
+    fig.update_traces(
+        hovertemplate=
+        "<b>%{label}</b><br>"
+        "Market Value: %{value:,.0f}<br>"
+        "Share in Sector: %{customdata[0]:.2f}%"
+        "<extra></extra>"
+    )
+    return _apply_chart_theme(fig, height=560)
 
 
 def chart_scatter_qoq_yoy(df: pd.DataFrame) -> go.Figure:
@@ -881,5 +913,5 @@ def render_dashboard() -> None:
     render_trend_section(filtered_df)
     render_structure_section(filtered_df)
     render_ranking_section(filtered_df)
-    render_growth_section(filtered_df)
+    # render_growth_section(filtered_df)
     render_drilldown_section(filtered_df)
