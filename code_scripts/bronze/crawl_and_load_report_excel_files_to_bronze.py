@@ -72,7 +72,7 @@ def craw_and_load_report_economic_excel_files_to_bronze():
         this_page_titles = []
         for x in the_h3:
             t = x.get_text(strip= True)
-            if '2010' in t:
+            if '2019' in t:
                 flag = False
                 break
             this_page_titles.append(t)
@@ -81,7 +81,7 @@ def craw_and_load_report_economic_excel_files_to_bronze():
         this_page_links = []
         for x in the_a:
             t = x['href']
-            if '2010' in t: break
+            if '2019' in t: break
             this_page_links.append(t)
 
         titles += this_page_titles
@@ -103,18 +103,37 @@ def craw_and_load_report_economic_excel_files_to_bronze():
         res = requests.get(link, verify= False)
         soup = BeautifulSoup(res.text, 'html.parser')
 
+        doc_url = ''
         excel_url = '' 
-        for a in soup.find_all('a', href= True):
-            href = a['href']
-            if href.endswith(('.xls', '.xlsx')):
-                excel_url =  href
+        file_attachment = soup.find("ul", class_="file-attachment")
+
+        if file_attachment:
+            # Bước 2: Lấy tất cả các li
+            file_items = file_attachment.find_all("li")
+
+            for item in file_items:
+                # Bước 3: Lấy thẻ a trong từng li
+                link = item.find("a", href=True)
+
+                if not link:
+                    continue
+
+                href = link["href"]
+
+                if href.lower().endswith(('.doc',".docx")):
+                    doc_url = href
+
+                elif href.lower().endswith((".xls", ".xlsx")):
+                    excel_url = href
+
 
     
+    
         # Code Classification Kinds of Excel Times Year - Month
+        
         year = title[len(title) -4 ::]
 
         # trích xuất tháng từ title
-        
         month = None
         if pre_month != None: 
             if pre_month != 1: 
@@ -155,17 +174,12 @@ def craw_and_load_report_economic_excel_files_to_bronze():
         object_name = f"economic_report_excel_files/{year}/{month}/"
         excel_file = requests.get(excel_url, verify= False, stream= True)
 
+        docx_file = requests.get(doc_url, verify=False, stream= True)
+        docx_file_name = doc_url.split('/')[-1]
+        
+        
         file_name = excel_url.split('/')[-1]
 
-        # Code push data to MinIO Bronze
-        # os.makedirs(f'/opt/airflow/tmp_data', exist_ok= True)
-        # with open(f'/opt/airflow/tmp_data/{file_name}', 'wb') as f: 
-        #     f.write(excel_file.content)
-        # print(f'Tạo file {file_name} thành công !!!!!!!!!!!!!!')
-
-        # load_file_to_Bronze(bucket_name='bronze', object_name= f"{object_name}{file_name}", local_file_path= f'/opt/airflow/tmp_data/{file_name}')
-        # os.remove(f'/opt/airflow/tmp_data/{file_name}')
-        # print('Xóa file lưu tạm thành công')
         os.makedirs('/opt/airflow/tmp_data', exist_ok=True)
 
         local_path = f'/opt/airflow/tmp_data/{file_name}'
@@ -177,16 +191,6 @@ def craw_and_load_report_economic_excel_files_to_bronze():
 
         upload_path = local_path
         upload_name = file_name
-
-        # convert nếu là .xls
-        if file_name.lower().endswith('.xls') \
-                and not file_name.lower().endswith('.xlsx'):
-
-            print('Bắt đầu convert XLS -> XLSX')
-            output_dir = os.path.dirname(local_path)
-            upload_path = convert_xls_to_xlsx_file(local_path, output_dir)
-
-            upload_name = os.path.basename(upload_path)
 
         # upload MinIO
         load_file_to_Bronze(
@@ -203,6 +207,28 @@ def craw_and_load_report_economic_excel_files_to_bronze():
                 and os.path.exists(upload_path):
             os.remove(upload_path)
 
+        local_path = f'/opt/airflow/tmp_data/{docx_file_name}'
+        with open(local_path, 'wb') as f:
+            f.write(docx_file.content)
+
+        print(f'Tạo file {file_name} thành công')
+        upload_path = local_path
+        upload_name = docx_file_name
+        object_name = f"economic_report_doc_files/{year}/{month}/"
+
+        load_file_to_Bronze(
+            bucket_name='bronze',
+            object_name=f"{object_name}{upload_name}",
+            local_file_path=upload_path
+        )
+        
+        if os.path.exists(local_path):
+            os.remove(local_path)
+
+        if upload_path != local_path \
+                and os.path.exists(upload_path):
+            os.remove(upload_path)
+            
         print('Xóa file tạm thành công')
 
 

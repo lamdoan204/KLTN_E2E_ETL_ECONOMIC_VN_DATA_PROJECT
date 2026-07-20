@@ -72,7 +72,7 @@ def backup_and_clear_prefix(bucket_name, source_prefix, backup_prefix):
     except Exception as e:
         print(e)
 
-def get_month_from_title(title):
+def get_month_frmo_title(title):
     """
     Trích xuất tháng từ title bài báo cáo mới nhất (10 ký tự cuối thường là " - YYYY").
     title: chuỗi đã lowercase.

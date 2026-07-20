@@ -3,6 +3,8 @@ from minio import Minio
 import pandas as pd
 import io
 
+import boto3
+from botocore.client import Config
 
 client = Minio(
     'minio:9000',
@@ -10,6 +12,28 @@ client = Minio(
     secret_key= 'minioadmin',
     secure= False
 )
+
+
+
+def check_exist_prefix(bucket_name, prefix):
+    try:
+        # Đảm bảo prefix kết thúc bằng '/'
+        if not prefix.endswith('/'):
+            prefix += '/'
+
+        objects = client.list_objects(
+            bucket_name=bucket_name,
+            prefix=prefix,
+            recursive=True
+        )
+
+        # Chỉ cần có 1 object là prefix tồn tại
+        return any(True for _ in objects)
+
+    except Exception as e:
+        print(f"An Error Occurred When Checking Prefix '{prefix}':", e)
+        return False
+    
 
 def check_exist_bucket(bucket_name):
     try:
@@ -103,3 +127,6 @@ def copy_object_in_minio(bucket_name, src_object_name, dst_object_name):
     except Exception as e:
         print(f'HAVE AN ERROR WHEN COPY OBJECT {src_object_name} -> {dst_object_name} !!!!!!!!!!')
         print(e)
+        
+
+ 

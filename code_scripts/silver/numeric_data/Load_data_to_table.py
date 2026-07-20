@@ -4,66 +4,117 @@ import pandas as pd
 from pyspark.sql.types import *
 from pyspark.sql.functions import col, trim, lower
 
-builder = SparkSession.builder \
-    .appName("Delta-MinIO") \
+builder = (
+    SparkSession.builder
+    .appName("Delta-MinIO")
+
+    # ==========================
+    # Delta Lake
+    # ==========================
     .config(
         "spark.sql.extensions",
         "io.delta.sql.DeltaSparkSessionExtension"
-    ).config(
+    )
+    .config(
         "spark.sql.catalog.spark_catalog",
         "org.apache.spark.sql.delta.catalog.DeltaCatalog"
-    ).config(
+    )
+
+    # ==========================
+    # Hive
+    # ==========================
+    .config(
         "spark.sql.catalogImplementation",
         "hive"
-    ).config(
+    )
+    .config(
         "hive.metastore.uris",
         "thrift://hive:9083"
-    ).config(
+    )
+    .config(
         "spark.sql.warehouse.dir",
         "s3a://warehouse/"
-    ).config(
+    )
+
+    # ==========================
+    # MinIO (S3A)
+    # ==========================
+    .config(
         "spark.hadoop.fs.s3a.endpoint",
         "http://minio:9000"
-    ).config(
+    )
+    .config(
         "spark.hadoop.fs.s3a.access.key",
         "minioadmin"
-    ).config(
+    )
+    .config(
         "spark.hadoop.fs.s3a.secret.key",
         "minioadmin"
-    ).config(
+    )
+    .config(
         "spark.hadoop.fs.s3a.path.style.access",
         "true"
-    ).config(
+    )
+    .config(
         "spark.hadoop.fs.s3a.connection.ssl.enabled",
         "false"
-    ).config(
+    )
+    .config(
         "spark.hadoop.fs.s3a.impl",
         "org.apache.hadoop.fs.s3a.S3AFileSystem"
-    ).config(
+    )
+
+    # ==========================
+    # Performance
+    # ==========================
+    .config(
         "spark.driver.memory",
         "2g"
-    ).config(
+    )
+    .config(
         "spark.driver.maxResultSize",
         "1g"
-    ).config(
+    )
+    .config(
         "spark.sql.shuffle.partitions",
         "4"
-    ).config(
+    )
+    .config(
         "spark.default.parallelism",
         "4"
-    ).config(
+    )
+    .config(
         "spark.sql.adaptive.enabled",
         "true"
-    ).config(
+    )
+    .config(
         "spark.sql.adaptive.coalescePartitions.enabled",
         "true"
-    ).config(
+    )
+
+    # ==========================
+    # UI / Logging
+    # ==========================
+    .config(
+        "spark.ui.enabled",
+        "false"
+    )
+    .config(
         "spark.ui.showConsoleProgress",
         "false"
-    ).enableHiveSupport()
+    )
+    .config(
+        "spark.eventLog.enabled",
+        "false"
+    )
 
+    .enableHiveSupport()
+)
 
 spark = builder.getOrCreate()
+
+# Chỉ hiện ERROR của Spark
+spark.sparkContext.setLogLevel("ERROR")
 
 
 # Map: với mỗi table, các cột "khóa định danh" dạng string không được phép

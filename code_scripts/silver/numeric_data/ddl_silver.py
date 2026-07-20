@@ -1,8 +1,7 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StringType, IntegerType
+from minio_funcs import * 
 
-import boto3
-from botocore.client import Config
 
 
 builder = SparkSession.builder \
@@ -55,10 +54,7 @@ builder = SparkSession.builder \
 
 spark = builder.getOrCreate()
 
-
-
-
-s3_client = boto3.client(
+client = boto3.client(
     "s3",
     endpoint_url="http://minio:9000",
     aws_access_key_id="minioadmin",
@@ -81,7 +77,7 @@ def delete_minio_prefix(bucket: str, prefix: str):
         prefix: prefix thư mục cần xoá (ví dụ: 'gdp/')
     """
     prefix = prefix.rstrip("/") + "/"  # đảm bảo có trailing slash
-    paginator = s3_client.get_paginator("list_objects_v2")
+    paginator = client.get_paginator("list_objects_v2")
     pages = paginator.paginate(Bucket=bucket, Prefix=prefix)
  
     deleted_count = 0
@@ -90,19 +86,16 @@ def delete_minio_prefix(bucket: str, prefix: str):
         if not objects:
             continue
         delete_payload = {"Objects": [{"Key": obj["Key"]} for obj in objects]}
-        s3_client.delete_objects(Bucket=bucket, Delete=delete_payload)
+        client.delete_objects(Bucket=bucket, Delete=delete_payload)
         deleted_count += len(objects)
  
     print(f"  → Đã xoá {deleted_count} object(s) tại s3://{bucket}/{prefix}")
- 
-
-
-
+    
 spark.sql("CREATE DATABASE IF NOT EXISTS silver")
 
 spark.sql('DROP TABLE IF EXISTS silver.gdp;')
 
-delete_minio_prefix('silver', 'gdp')
+if check_exist_prefix('silver', 'gdp') :delete_minio_prefix('silver', 'gdp')
 
 spark.sql("""   
 CREATE TABLE silver.gdp (
@@ -119,7 +112,7 @@ USING DELTA
 LOCATION 's3a://silver/gdp'
 """)
 spark.sql('DROP TABLE IF EXISTS silver.investment;')
-delete_minio_prefix('silver', 'investment')
+if check_exist_prefix('silver', 'investment'): delete_minio_prefix('silver', 'investment')
 
 spark.sql("""
 CREATE TABLE silver.investment (
@@ -135,7 +128,7 @@ LOCATION 's3a://silver/investment'
 """)
 
 spark.sql('DROP TABLE IF EXISTS silver.international_ecommerce;')
-delete_minio_prefix('silver', 'international_ecommerce')
+if check_exist_prefix('silver', 'international_ecommerce'): delete_minio_prefix('silver', 'international_ecommerce')
 
 spark.sql("""
 CREATE TABLE silver.international_ecommerce (
@@ -155,7 +148,7 @@ LOCATION 's3a://silver/international_ecommerce'
 """)
 
 spark.sql('DROP TABLE IF EXISTS silver.forestry;')
-delete_minio_prefix('silver', 'forestry')
+if check_exist_prefix('silver', 'forestry'): delete_minio_prefix('silver', 'forestry')
 
 spark.sql("""
 CREATE TABLE silver.forestry (
@@ -171,7 +164,7 @@ LOCATION 's3a://silver/forestry'
 """)
 
 spark.sql('DROP TABLE IF EXISTS silver.livestock;')
-delete_minio_prefix('silver', 'livestock')
+if check_exist_prefix('silver', 'livestock'): delete_minio_prefix('silver', 'livestock')
 
 spark.sql("""
 CREATE TABLE silver.livestock (
@@ -187,7 +180,7 @@ LOCATION 's3a://silver/livestock'
 """)
 
 spark.sql('DROP TABLE IF EXISTS silver.aquatic_products;')
-delete_minio_prefix('silver', 'aquatic_products')
+if check_exist_prefix('silver', 'aquatic_products'): delete_minio_prefix('silver', 'aquatic_products')
 
 spark.sql("""
 CREATE TABLE silver.aquatic_products (
@@ -205,7 +198,7 @@ LOCATION 's3a://silver/aquatic_products'
 
 
 spark.sql('DROP TABLE IF EXISTS silver.industry_product;')
-delete_minio_prefix('silver', 'industry_product')
+if check_exist_prefix('silver', 'industry_product'): delete_minio_prefix('silver', 'industry_product')
 
 spark.sql("""
 CREATE TABLE silver.industry_product (
@@ -221,24 +214,8 @@ USING DELTA
 LOCATION 's3a://silver/industry_product'
 """)
 
-
-spark.sql('DROP TABLE IF EXISTS silver.investment_by_sector;')
-delete_minio_prefix('silver', 'investment_by_sector')
-
-spark.sql("""
-CREATE TABLE silver.investment_by_sector (
-    name STRING,
-    value DOUBLE,
-    unit STRING,
-    year INT,
-    ingest_at TIMESTAMP
-)
-USING DELTA
-LOCATION 's3a://silver/investment_by_sector'
-""")
-
 spark.sql('DROP TABLE IF EXISTS silver.annual_crops;')
-delete_minio_prefix('silver', 'annual_crops')
+if check_exist_prefix('silver', 'annual_crops'): delete_minio_prefix('silver', 'annual_crops')
 
 spark.sql("""
 CREATE TABLE silver.annual_crops (
@@ -256,7 +233,7 @@ USING DELTA
 LOCATION 's3a://silver/annual_crops'
 """)
 spark.sql('DROP TABLE IF EXISTS silver.staple_crops;')
-delete_minio_prefix('silver', 'staple_crops')
+if check_exist_prefix('silver', 'staple_crops'):  delete_minio_prefix('silver', 'staple_crops')
 
 spark.sql("""
 CREATE TABLE silver.staple_crops (
@@ -274,7 +251,7 @@ USING DELTA
 LOCATION 's3a://silver/staple_crops'
 """)
 spark.sql('DROP TABLE IF EXISTS silver.perennial_crops;')
-delete_minio_prefix('silver', 'perennial_crops')
+if check_exist_prefix('silver', 'perennial_crops'): delete_minio_prefix('silver', 'perennial_crops')
 
 spark.sql("""
 CREATE TABLE silver.perennial_crops (
