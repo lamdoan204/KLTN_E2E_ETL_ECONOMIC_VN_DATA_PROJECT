@@ -194,9 +194,6 @@ General Statistics Office (GSO)
      BeautifulSoup Crawler
             │
             ▼
-       Apache Airflow
-            │
-            ▼
    Spark + Pandas Processing
             │
             ▼
