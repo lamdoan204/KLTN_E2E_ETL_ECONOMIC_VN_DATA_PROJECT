@@ -130,7 +130,7 @@ The pipeline:
 
 ## Architecture
 
-> Architecture diagram will be added here.
+![architecture](architecture.png)
 
 ---
 ## Snowflake Schema in Gold Layer serve for analysis
